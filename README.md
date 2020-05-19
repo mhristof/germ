@@ -1,4 +1,4 @@
-# germ
+![germ](noun_Germ_2997094.png)
 
 Create iterm2 dynamic profiles.
 
@@ -33,3 +33,6 @@ The user can define her own Smart selection rules in a file called `~/.germ.ssr.
     },
 ]
 ```
+## Icon
+
+[Germ by Binpodo from the Noun Project](https://thenounproject.com/search/?q=germ&i=2997094)
