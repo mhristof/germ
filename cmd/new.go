@@ -19,8 +19,8 @@ var (
 	value    string
 	file     string
 	keyChain = keychain.KeyChain{
-		Service:     "pterm",
-		AccessGroup: "pterm",
+		Service:     "gterm",
+		AccessGroup: "gterm",
 	}
 )
 

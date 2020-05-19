@@ -12,7 +12,7 @@ var (
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "pterm",
+	Use:   "gterm",
 	Short: "Generate dynamic iTerm2 profiles",
 	Run: func(cmd *cobra.Command, args []string) {
 		Verbose(cmd)

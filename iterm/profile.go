@@ -114,7 +114,7 @@ func NewProfile(name string, config map[string]string) *Profile {
 		GUID:                name,
 		Tags:                Tags(config),
 		CustomDirectory:     "Recycle",
-		SmartSelectionRules: SmartSelectionRules("~/.pterm.ssr.json"),
+		SmartSelectionRules: SmartSelectionRules("~/.gterm.ssr.json"),
 		Triggers:            Triggers(),
 		BadgeText:           name,
 		TitleComponents:     32,
