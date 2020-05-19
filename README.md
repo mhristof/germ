@@ -1,4 +1,4 @@
-# gterm
+# germ
 
 Create iterm2 dynamic profiles.
 
@@ -14,9 +14,9 @@ This script extracts profiles for:
 
 ### SmartSelectionRules
 
-The user can define her own Smart selection rules in a file called `~/.gterm.ssr.json`. For example
+The user can define her own Smart selection rules in a file called `~/.germ.ssr.json`. For example
 
-> cat ~/.gterm.ssr.json
+> cat ~/.germ.ssr.json
 ```json
 [
     {

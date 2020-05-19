@@ -6,8 +6,8 @@ SHELL := bash
 .SHELLFLAGS := -eu -o pipefail -c
 .ONESHELL:
 
-./bin/gterm: $(shell find ./ -name '*.go')
-	go build -o bin/gterm main.go
+./bin/germ: $(shell find ./ -name '*.go')
+	go build -o bin/germ main.go
 
 gen:
 	go run main.go generate -n

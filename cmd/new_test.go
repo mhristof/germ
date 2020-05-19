@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/MakeNowJust/heredoc"
-	"github.com/mhristof/gterm/log"
+	"github.com/mhristof/germ/log"
 	"gotest.tools/assert"
 )
 

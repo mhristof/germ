@@ -8,8 +8,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/mhristof/gterm/iterm"
-	"github.com/mhristof/gterm/log"
+	"github.com/mhristof/germ/iterm"
+	"github.com/mhristof/germ/log"
 	"github.com/zieckey/goini"
 )
 

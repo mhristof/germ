@@ -3,7 +3,7 @@ package cmd
 import (
 	"os"
 
-	"github.com/mhristof/gterm/log"
+	"github.com/mhristof/germ/log"
 	"github.com/spf13/cobra"
 )
 
@@ -12,7 +12,7 @@ var (
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "gterm",
+	Use:   "germ",
 	Short: "Generate dynamic iTerm2 profiles",
 	Run: func(cmd *cobra.Command, args []string) {
 		Verbose(cmd)

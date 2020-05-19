@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	"github.com/keybase/go-keychain"
-	"github.com/mhristof/gterm/iterm"
-	"github.com/mhristof/gterm/log"
+	"github.com/mhristof/germ/iterm"
+	"github.com/mhristof/germ/log"
 )
 
 type KeyChain struct {

@@ -1,4 +1,4 @@
-module github.com/mhristof/gterm
+module github.com/mhristof/germ
 
 go 1.13
 

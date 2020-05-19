@@ -8,8 +8,8 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/mhristof/gterm/keychain"
-	"github.com/mhristof/gterm/log"
+	"github.com/mhristof/germ/keychain"
+	"github.com/mhristof/germ/log"
 	"github.com/spf13/cobra"
 	"golang.org/x/crypto/ssh/terminal"
 )
@@ -19,8 +19,8 @@ var (
 	value    string
 	file     string
 	keyChain = keychain.KeyChain{
-		Service:     "gterm",
-		AccessGroup: "gterm",
+		Service:     "germ",
+		AccessGroup: "germ",
 	}
 )
 

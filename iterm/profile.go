@@ -7,7 +7,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/mhristof/gterm/log"
+	"github.com/mhristof/germ/log"
 	"github.com/mitchellh/go-homedir"
 )
 
@@ -114,7 +114,7 @@ func NewProfile(name string, config map[string]string) *Profile {
 		GUID:                name,
 		Tags:                Tags(config),
 		CustomDirectory:     "Recycle",
-		SmartSelectionRules: SmartSelectionRules("~/.gterm.ssr.json"),
+		SmartSelectionRules: SmartSelectionRules("~/.germ.ssr.json"),
 		Triggers:            Triggers(),
 		BadgeText:           name,
 		TitleComponents:     32,

@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"io/ioutil"
 
-	"github.com/mhristof/gterm/aws"
-	"github.com/mhristof/gterm/iterm"
-	"github.com/mhristof/gterm/k8s"
-	"github.com/mhristof/gterm/log"
+	"github.com/mhristof/germ/aws"
+	"github.com/mhristof/germ/iterm"
+	"github.com/mhristof/germ/k8s"
+	"github.com/mhristof/germ/log"
 	"github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
 )

@@ -6,8 +6,8 @@ import (
 	"os/user"
 	"path/filepath"
 
-	"github.com/mhristof/gterm/iterm"
-	"github.com/mhristof/gterm/log"
+	"github.com/mhristof/germ/iterm"
+	"github.com/mhristof/germ/log"
 	"gopkg.in/yaml.v2"
 )
 

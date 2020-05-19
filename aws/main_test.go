@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/mhristof/gterm/iterm"
+	"github.com/mhristof/germ/iterm"
 	"github.com/stretchr/testify/assert"
 )
 
