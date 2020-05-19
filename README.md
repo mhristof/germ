@@ -1,6 +1,20 @@
-![germ](noun_Germ_2997094.png)
+```
+ _______  _______  ______    __   __
+|       ||       ||    _ |  |  |_|  |
+|    ___||    ___||   | ||  |       |
+|   | __ |   |___ |   |_||_ |       |
+|   ||  ||    ___||    __  ||       |
+|   |_| ||   |___ |   |  | || ||_|| |
+|_______||_______||___|  |_||_|   |_|
+```
 
 Create iterm2 dynamic profiles.
+
+## Installation
+
+```
+go get github.com/mhristof/germ
+```
 
 ## Coverage
 
@@ -33,6 +47,3 @@ The user can define her own Smart selection rules in a file called `~/.germ.ssr.
     },
 ]
 ```
-## Icon
-
-[Germ by Binpodo from the Noun Project](https://thenounproject.com/search/?q=germ&i=2997094)
