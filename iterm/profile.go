@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/mhristof/germ/log"
@@ -135,6 +136,16 @@ func NewProfile(name string, config map[string]string) *Profile {
 	v, found = config["BadgeText"]
 	if found {
 		prof.BadgeText = v
+	}
+
+	v, found = config["AllowTitleSetting"]
+	if found {
+		value, err := strconv.ParseBool(v)
+		if err != nil {
+			panic(err)
+		}
+
+		prof.AllowTitleSetting = value
 	}
 
 	prof.Colors()

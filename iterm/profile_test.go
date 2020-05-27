@@ -129,6 +129,15 @@ func TestNewProfile(t *testing.T) {
 				return p.BadgeText == "awesome"
 			},
 		},
+		{
+			name: "custom title setting",
+			config: map[string]string{
+				"AllowTitleSetting": "true",
+			},
+			eval: func(p *Profile) bool {
+				return p.AllowTitleSetting == true
+			},
+		},
 	}
 
 	for _, test := range cases {
