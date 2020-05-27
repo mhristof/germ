@@ -132,6 +132,11 @@ func NewProfile(name string, config map[string]string) *Profile {
 		prof.CustomCommand = "Yes"
 	}
 
+	v, found = config["BadgeText"]
+	if found {
+		prof.BadgeText = v
+	}
+
 	prof.Colors()
 	return &prof
 }

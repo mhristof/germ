@@ -39,6 +39,9 @@ var generateCmd = &cobra.Command{
 		prof.Profiles = append(prof.Profiles, aws.Profiles(AWSConfig)...)
 		prof.Profiles = append(prof.Profiles, k8s.Profiles(kubeConfig, dryRun)...)
 		prof.Profiles = append(prof.Profiles, keyChain.Profiles()...)
+		prof.Profiles = append(prof.Profiles, *iterm.NewProfile("default", map[string]string{
+			"BadgeText": "",
+		}))
 		prof.UpdateKeyboardMaps()
 
 		profJSON, err := json.MarshalIndent(prof, "", "    ")

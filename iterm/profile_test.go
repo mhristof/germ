@@ -120,6 +120,15 @@ func TestNewProfile(t *testing.T) {
 				return p.BackgroundColor.BlueComponent != 0
 			},
 		},
+		{
+			name: "custom badge text",
+			config: map[string]string{
+				"BadgeText": "awesome",
+			},
+			eval: func(p *Profile) bool {
+				return p.BadgeText == "awesome"
+			},
+		},
 	}
 
 	for _, test := range cases {
