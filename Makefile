@@ -21,6 +21,10 @@ test:
 	go test ./...
 .PHONY: test
 
+diff:
+	go run main.go generate --diff
+.PHONY: diff
+
 help:           ## Show this help.
 	@grep '.*:.*##' Makefile | grep -v grep  | sort | sed 's/:.* ##/:/g' | column -t -s:
 .PHONY: help

@@ -4,7 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"sort"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/mhristof/germ/aws"
 	"github.com/mhristof/germ/iterm"
 	"github.com/mhristof/germ/k8s"
@@ -17,6 +19,7 @@ var (
 	output         string
 	write          bool
 	kubeConfig     string
+	diff           bool
 	AWSConfig      string
 	DefaultProfile = "default"
 )
@@ -32,7 +35,14 @@ var generateCmd = &cobra.Command{
 			log.WithFields(log.Fields{
 				"write":  write,
 				"dryrun": dryRun,
-			}).Panic("--write is incompatible with --dry-run")
+			}).Fatal("--write is incompatible with --dry-run")
+		}
+
+		if write && diff {
+			log.WithFields(log.Fields{
+				"write": write,
+				"diff":  diff,
+			}).Fatal("--write and --diff are incompatible")
 		}
 
 		var prof iterm.Profiles
@@ -50,7 +60,7 @@ var generateCmd = &cobra.Command{
 		if err != nil {
 			log.WithFields(log.Fields{
 				"err": err,
-			}).Panic("Cannot indent json results")
+			}).Fatal("Cannot indent json results")
 		}
 
 		if write {
@@ -59,7 +69,36 @@ var generateCmd = &cobra.Command{
 				log.WithFields(log.Fields{
 					"output": output,
 					"err":    err,
-				}).Panic("Cannot write to file")
+				}).Fatal("Cannot write to file")
+			}
+		} else if diff {
+			curr, err := ioutil.ReadFile(output)
+			if err != nil {
+				log.WithFields(log.Fields{
+					"err":    err,
+					"output": output,
+				}).Fatal("Cannot read file")
+			}
+
+			var current iterm.Profiles
+			err = json.Unmarshal(curr, &current)
+			if err != nil {
+				log.WithFields(log.Fields{
+					"err":    err,
+					"output": output,
+				}).Fatal("Cannot unmarshal output file")
+			}
+
+			sort.Slice(current.Profiles, func(i, j int) bool {
+				return current.Profiles[i].GUID < current.Profiles[j].GUID
+			})
+
+			sort.Slice(prof.Profiles, func(i, j int) bool {
+				return prof.Profiles[i].GUID < prof.Profiles[j].GUID
+			})
+
+			if diff := cmp.Diff(current, prof); diff != "" {
+				fmt.Println("Updating (-current +new):", diff)
 			}
 		} else {
 			fmt.Println(string(profJSON))
@@ -73,7 +112,7 @@ func expandUser(path string) string {
 		log.WithFields(log.Fields{
 			"path": path,
 			"err":  err,
-		}).Panic("Cannot expand homedir")
+		}).Fatal("Cannot expand homedir")
 	}
 	return out
 }
@@ -95,6 +134,7 @@ func init() {
 		"Kubernetes configuration file",
 	)
 	generateCmd.Flags().BoolVarP(&write, "write", "w", false, "Write the output to the destination file")
+	generateCmd.Flags().BoolVarP(&diff, "diff", "d", false, "Generate a diff for the new changes")
 
 	rootCmd.AddCommand(generateCmd)
 }
