@@ -41,7 +41,7 @@ func add(p *iterm.Profiles, name string, config map[string]string) {
 	if err != nil {
 		log.WithFields(log.Fields{
 			"err": err,
-		}).Panic("Cannot find current user")
+		}).Fatal("Cannot find current user")
 	}
 
 	config["Command"] = fmt.Sprintf("/usr/bin/env AWS_PROFILE=%s /usr/bin/login -fp %s", name, user.Username)
@@ -71,7 +71,7 @@ func loginCmd(name string, config map[string]string) string {
 		log.WithFields(log.Fields{
 			"tool": tool,
 			"err":  err,
-		}).Panic("Cannot find executable")
+		}).Fatal("Cannot find executable")
 	}
 
 	return fmt.Sprintf(

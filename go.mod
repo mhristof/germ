@@ -9,7 +9,7 @@ require (
 	github.com/keybase/go-keychain v0.0.0-20200502122510-cda31fe0c86d
 	github.com/kr/pretty v0.2.0 // indirect
 	github.com/mitchellh/go-homedir v1.1.0
-	github.com/sirupsen/logrus v1.2.0
+	github.com/sirupsen/logrus v1.4.2
 	github.com/spf13/cobra v1.0.0
 	github.com/stretchr/testify v1.5.1
 	github.com/zieckey/goini v0.0.0-20180118150432-0da17d361d26

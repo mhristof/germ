@@ -52,14 +52,14 @@ func tempFile(contents, name string) (string, func()) {
 	if err != nil {
 		log.WithFields(log.Fields{
 			"err": err,
-		}).Panic("Cannot create temp dir")
+		}).Fatal("Cannot create temp dir")
 	}
 
 	tmpfn := filepath.Join(dir, name)
 	if err := ioutil.WriteFile(tmpfn, []byte(contents), 0666); err != nil {
 		log.WithFields(log.Fields{
 			"err": err,
-		}).Panic("Cannot write to file")
+		}).Fatal("Cannot write to file")
 	}
 	return tmpfn, func() {
 		os.RemoveAll(dir)

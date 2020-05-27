@@ -41,7 +41,7 @@ var defaultCmd = &cobra.Command{
 		if err != nil {
 			log.WithFields(log.Fields{
 				"err": err,
-			}).Panic("Could not create template")
+			}).Fatal("Could not create template")
 
 		}
 
@@ -54,7 +54,7 @@ var defaultCmd = &cobra.Command{
 		if err != nil {
 			log.WithFields(log.Fields{
 				"err": err,
-			}).Panic("Could not render template")
+			}).Fatal("Could not render template")
 
 		}
 
@@ -62,7 +62,7 @@ var defaultCmd = &cobra.Command{
 		if err != nil {
 			log.WithFields(log.Fields{
 				"err": err,
-			}).Panic("Could not create temp file")
+			}).Fatal("Could not create temp file")
 
 		}
 		defer os.Remove(tmpfile.Name())
@@ -71,20 +71,20 @@ var defaultCmd = &cobra.Command{
 		if _, err := tmpfile.Write(rendered.Bytes()); err != nil {
 			log.WithFields(log.Fields{
 				"err": err,
-			}).Panic("Could not write to file")
+			}).Fatal("Could not write to file")
 
 		}
 		if err := tmpfile.Close(); err != nil {
 			log.WithFields(log.Fields{
 				"err": err,
-			}).Panic("Could not close file")
+			}).Fatal("Could not close file")
 		}
 
 		python3, err := exec.LookPath("python3")
 		if err != nil {
 			log.WithFields(log.Fields{
 				"err": err,
-			}).Panic("Could not find python3")
+			}).Fatal("Could not find python3")
 
 		}
 
@@ -93,7 +93,7 @@ var defaultCmd = &cobra.Command{
 		if err != nil {
 			log.WithFields(log.Fields{
 				"err": err,
-			}).Panic("Could not set default profile")
+			}).Fatal("Could not set default profile")
 		}
 	},
 }

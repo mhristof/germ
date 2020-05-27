@@ -46,7 +46,7 @@ func findPassword(file string) string {
 	if err != nil {
 		log.WithFields(log.Fields{
 			"err": err,
-		}).Panic("Cannot read secret")
+		}).Fatal("Cannot read secret")
 	}
 	return string(bytePassword)
 }
@@ -60,14 +60,14 @@ func handleFile(file string) string {
 			log.WithFields(log.Fields{
 				"records[0][2]": records[0][2],
 				"file":          file,
-			}).Panic("Invalid header for AWS creds file")
+			}).Fatal("Invalid header for AWS creds file")
 		}
 
 		if records[0][3] != "Secret access key" {
 			log.WithFields(log.Fields{
 				"records[0][3]": records[0][3],
 				"file":          file,
-			}).Panic("Invalid header for AWS creds file")
+			}).Fatal("Invalid header for AWS creds file")
 		}
 
 		return exportAWS(records[1][2], records[1][3])
@@ -80,14 +80,14 @@ func handleFile(file string) string {
 			log.WithFields(log.Fields{
 				"records[0][0]": records[0][0],
 				"file":          file,
-			}).Panic("Invalid header for AWS creds file")
+			}).Fatal("Invalid header for AWS creds file")
 		}
 
 		if records[0][1] != "Secret access key" {
 			log.WithFields(log.Fields{
 				"records[0][1]": records[0][1],
 				"file":          file,
-			}).Panic("Invalid header for AWS creds file")
+			}).Fatal("Invalid header for AWS creds file")
 
 		}
 
@@ -95,7 +95,7 @@ func handleFile(file string) string {
 	}
 	log.WithFields(log.Fields{
 		"file": file,
-	}).Panic("Cannot handle this creds file")
+	}).Fatal("Cannot handle this creds file")
 	return ""
 }
 
@@ -103,13 +103,21 @@ func slurpCsv(file string) [][]string {
 
 	in, err := ioutil.ReadFile(file)
 	if err != nil {
-		panic(err)
+		log.WithFields(log.Fields{
+			"err":  err,
+			"file": file,
+		}).Fatal("Cannot read file")
+
 	}
 	r := csv.NewReader(strings.NewReader(string(in)))
 
 	records, err := r.ReadAll()
 	if err != nil {
-		panic(err)
+		log.WithFields(log.Fields{
+			"err":  err,
+			"file": file,
+		}).Fatal("Cannot read CSV file")
+
 	}
 
 	return records

@@ -60,7 +60,7 @@ func (k *KubeConfig) Profiles(dest string, dry bool) []iterm.Profile {
 		if !found {
 			log.WithFields(log.Fields{
 				"cluster.Name": cluster.Name,
-			}).Panic("Cluster not found")
+			}).Fatal("Cluster not found")
 		}
 
 		var path = fmt.Sprintf("dry/run/path/%s", this.name())
@@ -78,7 +78,7 @@ func (k *KubeConfig) name() string {
 	if len(k.Clusters) != 1 {
 		log.WithFields(log.Fields{
 			"len(k.Clusters)": len(k.Clusters),
-		}).Panic("Cannot handle multiple cluster definitions")
+		}).Fatal("Cannot handle multiple cluster definitions")
 	}
 
 	return k.Clusters[0].Name
@@ -88,7 +88,7 @@ func (k *KubeConfig) Profile(path string) *iterm.Profile {
 	if len(k.Clusters) != 1 {
 		log.WithFields(log.Fields{
 			"len(k.Clusters)": len(k.Clusters),
-		}).Panic("Cannot handle multiple cluster definitions")
+		}).Fatal("Cannot handle multiple cluster definitions")
 	}
 
 	name := k.Clusters[0].Name
@@ -97,14 +97,14 @@ func (k *KubeConfig) Profile(path string) *iterm.Profile {
 		log.WithFields(log.Fields{
 			"awsProfile": awsProfile,
 			"cluster":    name,
-		}).Panic("Not found in cluster")
+		}).Fatal("Not found in cluster")
 	}
 
 	user, err := user.Current()
 	if err != nil {
 		log.WithFields(log.Fields{
 			"err": err,
-		}).Panic("Cannot find current user")
+		}).Fatal("Cannot find current user")
 	}
 
 	cmd := fmt.Sprintf(
@@ -128,7 +128,7 @@ func (k *KubeConfig) AWSProfile() string {
 	if len(k.Clusters) != 1 {
 		log.WithFields(log.Fields{
 			"len(k.Clusters)": len(k.Clusters),
-		}).Panic("Cannot handle multiple clusters")
+		}).Fatal("Cannot handle multiple clusters")
 	}
 
 	for _, item := range k.Users[0].User.Exec.Env {
@@ -145,7 +145,7 @@ func Load(config string) *KubeConfig {
 		log.WithFields(log.Fields{
 			"config": config,
 			"err":    err,
-		}).Panic("Cannot read file")
+		}).Fatal("Cannot read file")
 	}
 
 	var kConfig KubeConfig
@@ -155,7 +155,7 @@ func Load(config string) *KubeConfig {
 		log.WithFields(log.Fields{
 			"config": config,
 			"err":    err,
-		}).Panic("Cannot unmarshal yaml bytes from config")
+		}).Fatal("Cannot unmarshal yaml bytes from config")
 	}
 
 	return &kConfig
@@ -165,7 +165,7 @@ func (k *KubeConfig) Print(dest string) string {
 	if len(k.Clusters) != 1 {
 		log.WithFields(log.Fields{
 			"len(k.Clusters)": len(k.Clusters),
-		}).Panic("Cannot handle multiple cluster definitions")
+		}).Fatal("Cannot handle multiple cluster definitions")
 	}
 
 	bytes, err := yaml.Marshal(k)
@@ -175,7 +175,7 @@ func (k *KubeConfig) Print(dest string) string {
 		log.WithFields(log.Fields{
 			"destFile": destFile,
 			"err":      err,
-		}).Panic("Cannot write to file")
+		}).Fatal("Cannot write to file")
 	}
 
 	return destFile
@@ -187,7 +187,7 @@ func (k *KubeConfig) SplitFiles(dest string) {
 		if !found {
 			log.WithFields(log.Fields{
 				"cluster.Name": cluster.Name,
-			}).Panic("Cluster not found")
+			}).Fatal("Cluster not found")
 		}
 
 		bytes, err := yaml.Marshal(this)
@@ -197,7 +197,7 @@ func (k *KubeConfig) SplitFiles(dest string) {
 			log.WithFields(log.Fields{
 				"destFile": destFile,
 				"err":      err,
-			}).Panic("Cannot write to file")
+			}).Fatal("Cannot write to file")
 		}
 	}
 

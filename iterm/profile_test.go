@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/MakeNowJust/heredoc"
+	"github.com/mhristof/germ/log"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -299,11 +300,18 @@ func tempFile(contents string) (string, func()) {
 	dir, err := ioutil.TempDir("", "example")
 	if err != nil {
 		panic(err)
+		log.WithFields(log.Fields{
+			"err": err,
+		}).Fatal("Cannot create Temp dir")
+
 	}
 
 	tmpfn := filepath.Join(dir, "tmpfile")
 	if err := ioutil.WriteFile(tmpfn, []byte(contents), 0666); err != nil {
-		panic(err)
+		log.WithFields(log.Fields{
+			"err": err,
+		}).Fatal("Cannot write to temp file")
+
 	}
 	return tmpfn, func() {
 		os.RemoveAll(dir)

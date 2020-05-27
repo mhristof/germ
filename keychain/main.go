@@ -21,7 +21,7 @@ func (k *KeyChain) Add(name, value string) {
 	if err == keychain.ErrorDuplicateItem {
 		log.WithFields(log.Fields{
 			"name": name,
-		}).Panic("Duplicate secret")
+		}).Fatal("Duplicate secret")
 
 	}
 
@@ -32,7 +32,7 @@ func (k *KeyChain) List() []string {
 	if err != nil {
 		log.WithFields(log.Fields{
 			"k.Service": k.Service,
-		}).Panic("Cannot retrieve the accounts")
+		}).Fatal("Cannot retrieve the accounts")
 
 	}
 
@@ -49,7 +49,7 @@ func (k *KeyChain) Delete(name string) {
 		log.WithFields(log.Fields{
 			"name": name,
 			"err":  err,
-		}).Panic("Failed to delete")
+		}).Fatal("Failed to delete")
 
 	}
 }

@@ -142,7 +142,11 @@ func NewProfile(name string, config map[string]string) *Profile {
 	if found {
 		value, err := strconv.ParseBool(v)
 		if err != nil {
-			panic(err)
+			log.WithFields(log.Fields{
+				"v":    v,
+				"name": name,
+			}).Fatal("Value is not convertable to bool")
+
 		}
 
 		prof.AllowTitleSetting = value
@@ -264,7 +268,7 @@ func loadUserSSR(path string) []SmartSelectionRule {
 	if err != nil {
 		log.WithFields(log.Fields{
 			"err": err,
-		}).Panic("Cannot expand path")
+		}).Fatal("Cannot expand path")
 	}
 
 	if _, err := os.Stat(userSsr); os.IsNotExist(err) {
@@ -276,7 +280,7 @@ func loadUserSSR(path string) []SmartSelectionRule {
 		log.WithFields(log.Fields{
 			"userSsr": userSsr,
 			"err":     err,
-		}).Panic("Cannot read file")
+		}).Fatal("Cannot read file")
 	}
 
 	var userSSRs []SmartSelectionRule
@@ -287,7 +291,7 @@ func loadUserSSR(path string) []SmartSelectionRule {
 			"string(bytes)": string(bytes),
 			"userSsr":       userSsr,
 			"err":           err,
-		}).Panic("Cannot parse json file")
+		}).Fatal("Cannot parse json file")
 	}
 
 	return userSSRs

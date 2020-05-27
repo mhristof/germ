@@ -24,7 +24,7 @@ func Verbose(cmd *cobra.Command) {
 	if err != nil {
 		log.WithFields(log.Fields{
 			"err": err,
-		}).Panic("Cannot get verbose value")
+		}).Fatal("Cannot get verbose value")
 	}
 
 	if verbose {
