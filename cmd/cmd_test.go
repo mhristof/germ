@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"strings"
 	"testing"
 
 	"github.com/mhristof/germ/iterm"
@@ -13,25 +12,25 @@ func TestGenerateTemplate(t *testing.T) {
 		name    string
 		command string
 		profile string
-		out     string
+		out     []string
 	}{
 		{
 			name:    "simple command with out templates",
 			command: "aws s3 ls",
 			profile: "foo",
-			out:     "aws s3 ls",
+			out:     []string{"aws s3 ls"},
 		},
 		{
 			name:    "template the profile name",
 			command: "aws s3 ls > {{ .Profile }}",
 			profile: "foo",
-			out:     "aws s3 ls > foo",
+			out:     []string{"aws s3 ls > foo"},
 		},
 		{
 			name:    "template with the region",
 			command: "aws s3 ls --region {{ .Region }}",
 			profile: "foo",
-			out: strings.Join([]string{
+			out: []string{
 				"aws s3 ls --region us-east-2",
 				"aws s3 ls --region us-east-1",
 				"aws s3 ls --region us-west-1",
@@ -55,7 +54,7 @@ func TestGenerateTemplate(t *testing.T) {
 				"aws s3 ls --region eu-north-1",
 				"aws s3 ls --region me-south-1",
 				"aws s3 ls --region sa-east-1",
-			}, ""),
+			},
 		},
 	}
 

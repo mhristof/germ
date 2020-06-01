@@ -30,7 +30,7 @@ var cmdCmd = &cobra.Command{
 			Profiles: aws.Profiles(AWSConfig),
 		}
 
-		fmt.Println(generateCommands(prof, command))
+		fmt.Println(strings.Join(generateCommands(prof, command), "\n"))
 	},
 }
 
@@ -53,21 +53,23 @@ func generateCommands(prof iterm.Profiles, command string) []string {
 
 			tCommand := fmt.Sprintf("AWS_PROFILE={{ .Profile }} %s", command)
 			str := generateTemplate(tCommand, profile)
-			ret = append(ret, str)
+			ret = append(ret, str...)
 		}
 	}
 	return ret
 }
 
-func generateTemplate(command, profile string) string {
+func generateTemplate(command, profile string) []string {
+	var ret []string
+
 	t, err := template.New(profile).Parse(command)
 	if err != nil {
 		panic(err)
 	}
 
-	var tpl bytes.Buffer
 	if strings.Contains(command, "{{ .Region }}") {
 		for _, region := range aws.Regions() {
+			var tpl bytes.Buffer
 			err = t.Execute(&tpl, struct {
 				Profile string
 				Region  string
@@ -75,16 +77,20 @@ func generateTemplate(command, profile string) string {
 				Profile: profile,
 				Region:  region,
 			})
+
+			ret = append(ret, tpl.String())
 		}
 	} else {
+		var tpl bytes.Buffer
 		err = t.Execute(&tpl, struct {
 			Profile string
 		}{
 			Profile: profile,
 		})
+		ret = append(ret, tpl.String())
 	}
 
-	return tpl.String()
+	return ret
 }
 
 func init() {
