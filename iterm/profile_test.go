@@ -23,7 +23,7 @@ func TestTags(t *testing.T) {
 				"source_profile": "bar",
 			},
 			result: []string{
-				"source-profile-bar",
+				"source-profile=bar",
 				"bar",
 			},
 		},
@@ -315,5 +315,46 @@ func tempFile(contents string) (string, func()) {
 	}
 	return tmpfn, func() {
 		os.RemoveAll(dir)
+	}
+}
+
+func TestProfileTree(t *testing.T) {
+	var cases = []struct {
+		name     string
+		profiles Profiles
+		out      map[string][]string
+	}{
+		{
+			name: "multiple child accounts",
+			profiles: Profiles{
+				Profiles: []Profile{
+					Profile{
+						GUID: "parent",
+					},
+					Profile{
+						GUID: "child1",
+						Tags: []string{
+							"source-profile=parent",
+						},
+					},
+					Profile{
+						GUID: "child2",
+						Tags: []string{
+							"source-profile=parent",
+						},
+					},
+				},
+			},
+			out: map[string][]string{
+				"parent": {
+					"child1",
+					"child2",
+				},
+			},
+		},
+	}
+
+	for _, test := range cases {
+		assert.Equal(t, test.profiles.ProfileTree(), test.out, test.name)
 	}
 }

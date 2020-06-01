@@ -20,7 +20,7 @@ var (
 	write          bool
 	kubeConfig     string
 	diff           bool
-	AWSConfig      string
+	AWSConfig      = expandUser("~/.aws/config")
 	DefaultProfile = "default"
 )
 
@@ -125,7 +125,7 @@ func init() {
 	)
 	generateCmd.Flags().StringVarP(
 		&AWSConfig, "aws-config", "a",
-		expandUser("~/.aws/config"),
+		AWSConfig,
 		"AWS config file path",
 	)
 	generateCmd.Flags().StringVarP(

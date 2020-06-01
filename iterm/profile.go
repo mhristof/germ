@@ -160,7 +160,7 @@ func Tags(c map[string]string) []string {
 	var tags []string
 	v, found := c["source_profile"]
 	if found {
-		tags = append(tags, fmt.Sprintf("source-profile-%s", v))
+		tags = append(tags, fmt.Sprintf("source-profile=%s", v))
 		tags = append(tags, v)
 	}
 
@@ -363,6 +363,43 @@ func (p *Profiles) UpdateKeyboardMaps() {
 		profile.KeyboardMap[key] = sourceProfile.KeyboardMap[key]
 
 	}
+}
+
+func (p *Profiles) SourceProfiles() []string {
+	var ret []string
+
+	for _, profile := range p.Profiles {
+		isSource := true
+		for _, tag := range profile.Tags {
+			if strings.HasPrefix(tag, "source-profile=") {
+				isSource = false
+			}
+		}
+		if isSource {
+			ret = append(ret, profile.GUID)
+		}
+	}
+	return ret
+}
+
+func (p *Profiles) ProfileTree() map[string][]string {
+	var ret = map[string][]string{}
+
+	for _, profile := range p.Profiles {
+		for _, tag := range profile.Tags {
+			if strings.HasPrefix(tag, "source-profile=") {
+				parts := strings.Split(tag, "=")
+				if _, ok := ret[parts[1]]; ok != true {
+					ret[parts[1]] = make([]string, 1)
+					ret[parts[1]][0] = profile.GUID
+				} else {
+					ret[parts[1]] = append(ret[parts[1]], profile.GUID)
+				}
+			}
+		}
+	}
+
+	return ret
 }
 
 func isProd(name string) bool {
