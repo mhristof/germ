@@ -27,8 +27,8 @@ func TestGenerateTemplate(t *testing.T) {
 			out:     []string{"aws s3 ls > foo"},
 		},
 		{
-			name:    "template with the region",
-			command: "aws s3 ls --region {{ .Region }}",
+			name:    "template with the region (wierdly spaced to test the regex match)",
+			command: "aws s3 ls --region {{.Region }}",
 			profile: "foo",
 			out: []string{
 				"aws s3 ls --region us-east-2",

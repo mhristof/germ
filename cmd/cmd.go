@@ -3,6 +3,7 @@ package cmd
 import (
 	"bytes"
 	"fmt"
+	"regexp"
 	"strings"
 	"text/template"
 
@@ -67,7 +68,8 @@ func generateTemplate(command, profile string) []string {
 		panic(err)
 	}
 
-	if strings.Contains(command, "{{ .Region }}") {
+	regexRegion := regexp.MustCompile(`{{\s*\.Region\s*}}`)
+	if regexRegion.MatchString(command) {
 		for _, region := range aws.Regions() {
 			var tpl bytes.Buffer
 			err = t.Execute(&tpl, struct {
