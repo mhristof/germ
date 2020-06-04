@@ -164,6 +164,11 @@ func Tags(c map[string]string) []string {
 		tags = append(tags, v)
 	}
 
+	if roleArn, ok := c["role_arn"]; ok == true {
+		parts := strings.Split(roleArn, ":")
+		tags = append(tags, parts[4])
+	}
+
 	v, found = c["azure_app_id_uri"]
 	if found {
 		parts := strings.Split(v, "#")

@@ -55,6 +55,15 @@ func TestTags(t *testing.T) {
 				"that",
 			},
 		},
+		{
+			name: "section with role_arn",
+			config: map[string]string{
+				"role_arn": "arn:aws:iam::123456789012:role/name",
+			},
+			result: []string{
+				"123456789012",
+			},
+		},
 	}
 
 	for _, test := range cases {
