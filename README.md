@@ -21,7 +21,7 @@ go get github.com/mhristof/germ
 This script extracts profiles for:
 
 1. AWS from `~/.aws/config`
-2. Kubernetes from ~/.kube/config`. If there are multiple clusters in the config, it splits out into different files and each profile utilises the extracted config. If you modify ~/.kube/config, you need to re-run this script.
+2. Kubernetes from `~/.kube/config`. If there are multiple clusters in the config, it splits out into different files and each profile utilises the extracted config. If you modify `~/.kube/config`, you need to re-run this script.
 
 
 ## Custom rules
