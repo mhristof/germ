@@ -4,6 +4,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var (
+	deleteName string
+)
+
 var deleteCmd = &cobra.Command{
 	Use:     "delete",
 	Aliases: []string{"del"},
@@ -11,12 +15,12 @@ var deleteCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		Verbose(cmd)
 
-		keyChain.Delete(name)
+		keyChain.Delete(deleteName)
 	},
 }
 
 func init() {
-	deleteCmd.Flags().StringVarP(&name, "name", "", "", "Name of the profile")
+	deleteCmd.Flags().StringVarP(&deleteName, "name", "", "", "Name of the profile")
 	deleteCmd.MarkFlagRequired("name")
 
 	rootCmd.AddCommand(deleteCmd)

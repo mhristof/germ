@@ -14,6 +14,7 @@ import (
 )
 
 var (
+	defaultProfileName   string
 	defaultProfilePython = heredoc.Doc(`
 		#!/usr/bin/env python3.7
 
@@ -49,7 +50,7 @@ var defaultCmd = &cobra.Command{
 		err = tmpl.Execute(rendered, struct {
 			Profile string
 		}{
-			Profile: name,
+			Profile: defaultProfileName,
 		})
 		if err != nil {
 			log.WithFields(log.Fields{
@@ -99,7 +100,7 @@ var defaultCmd = &cobra.Command{
 }
 
 func init() {
-	defaultCmd.Flags().StringVarP(&name, "name", "", DefaultProfile, "Name of the profile")
+	defaultCmd.Flags().StringVarP(&defaultProfileName, "name", "", DefaultProfile, "Name of the profile")
 
 	rootCmd.AddCommand(defaultCmd)
 }
