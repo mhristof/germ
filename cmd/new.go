@@ -22,6 +22,7 @@ var (
 		Service:     "germ",
 		AccessGroup: "germ",
 	}
+	exported bool
 )
 
 var newCmd = &cobra.Command{
@@ -31,7 +32,6 @@ var newCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		Verbose(cmd)
 
-		fmt.Println(findPassword(file))
 		keyChain.Add(name, findPassword(file))
 	},
 }
@@ -48,6 +48,11 @@ func findPassword(file string) string {
 			"err": err,
 		}).Fatal("Cannot read secret")
 	}
+
+	if exported {
+		bytePassword = []byte(fmt.Sprintf("export %s='%s'", strings.ToUpper(name), string(bytePassword)))
+	}
+
 	return string(bytePassword)
 }
 
@@ -130,6 +135,7 @@ func exportAWS(access, secret string) string {
 func init() {
 	newCmd.Flags().StringVarP(&name, "name", "", "", "Name of the profile")
 	newCmd.Flags().StringVarP(&file, "file", "f", "", "Credentials file to parse")
+	newCmd.Flags().BoolVarP(&exported, "export", "e", false, "Treat the password as an exported variable. The name of the variable will be the uppercased name provided.")
 	newCmd.MarkFlagRequired("name")
 
 	rootCmd.AddCommand(newCmd)

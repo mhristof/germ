@@ -140,15 +140,16 @@ func (k *KubeConfig) AWSProfile() string {
 }
 
 func Load(config string) *KubeConfig {
+	var kConfig KubeConfig
+
 	yamlBytes, err := ioutil.ReadFile(config)
 	if err != nil {
 		log.WithFields(log.Fields{
 			"config": config,
 			"err":    err,
-		}).Fatal("Cannot read file")
+		}).Warn("Cannot read file")
+		return &kConfig
 	}
-
-	var kConfig KubeConfig
 
 	err = yaml.Unmarshal(yamlBytes, &kConfig)
 	if err != nil {
