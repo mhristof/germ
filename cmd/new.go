@@ -58,7 +58,7 @@ func findPassword(file string) string {
 
 func handleFile(file string) string {
 	base := filepath.Base(file)
-	if strings.HasPrefix(base, "credentials") && strings.HasSuffix(file, "csv") {
+	if strings.Contains(base, "credentials") && strings.HasSuffix(file, "csv") {
 		records := slurpCsv(file)
 
 		if records[0][2] != "Access key ID" {
@@ -78,7 +78,7 @@ func handleFile(file string) string {
 		return exportAWS(records[1][2], records[1][3])
 	}
 
-	if strings.HasPrefix(base, "accessKeys") && strings.HasSuffix(file, "csv") {
+	if strings.Contains(base, "accessKeys") && strings.HasSuffix(file, "csv") {
 		records := slurpCsv(file)
 
 		if records[0][0] != "Access key ID" {
