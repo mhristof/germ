@@ -21,7 +21,7 @@ var (
 	kubeConfig     string
 	diff           bool
 	AWSConfig      = expandUser("~/.aws/config")
-	DefaultProfile = "default"
+	DefaultProfile = "default-profile"
 )
 
 var generateCmd = &cobra.Command{
