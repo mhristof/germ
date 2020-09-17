@@ -8,12 +8,14 @@ import (
 )
 
 var (
-	dryRun bool
+	dryRun  bool
+	version = "devel"
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "germ",
-	Short: "Generate dynamic iTerm2 profiles",
+	Use:     "germ",
+	Short:   "Generate dynamic iTerm2 profiles",
+	Version: version,
 	Run: func(cmd *cobra.Command, args []string) {
 		Verbose(cmd)
 	},
