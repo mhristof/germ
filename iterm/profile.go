@@ -303,11 +303,18 @@ func loadUserSSR(path string) []SmartSelectionRule {
 }
 
 func Triggers() []Trigger {
+	idRsa, err := homedir.Expand("~/.ssh/id_rsa")
+	if err != nil {
+		log.WithFields(log.Fields{
+			"err": err,
+		}).Panic("Cannot expand ~/.ssh/id_rsa")
+	}
+
 	return []Trigger{
 		{
 			Partial:   true,
 			Parameter: "id_rsa",
-			Regex:     `^Enter passphrase for (key ')?/Users/Mike.Christofilopoulos/.ssh/id_rsa`,
+			Regex:     fmt.Sprintf(`^Enter passphrase for (key ')?%s`, idRsa),
 			Action:    "PasswordTrigger",
 		},
 		{
