@@ -11,7 +11,7 @@ jobs:
     steps:
         - uses: actions/checkout@v2
         - run: make test
-        - run: make bin/germ
+        - run: make all
         - name: Create Release
           id: create_release
           uses: actions/create-release@v1
@@ -23,7 +23,7 @@ jobs:
             draft: false
             prerelease: false
         - name: Upload Release Asset (darwin)
-          id: upload-release-asset 
+          id: upload-release-asset-darwin
           uses: actions/upload-release-asset@v1
           env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -33,7 +33,7 @@ jobs:
             asset_name: germ.darwin
             asset_content_type: application/octet-stream
         - name: Upload Release Asset (linux)
-          id: upload-release-asset
+          id: upload-release-asset-linux
           uses: actions/upload-release-asset@v1
           env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
