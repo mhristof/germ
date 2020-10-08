@@ -13,7 +13,7 @@ SHELL := bash
 GIT_REF := $(shell git rev-parse --short HEAD)
 GIT_TAG := $(shell git name-rev --tags --name-only $(GIT_REF))
 
-all: ./bin/germ.darwin ./bin/germ.linux
+all: ./bin/germ.darwin
 
 ./bin/germ.%: $(shell find ./ -name '*.go')
 	GOOS=$* go build -o $@ -ldflags "-X github.com/mhristof/germ/cmd.version=$(GIT_TAG)+$(GIT_REF)" main.go
