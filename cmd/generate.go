@@ -49,6 +49,7 @@ var generateCmd = &cobra.Command{
 
 		prof.Profiles = append(prof.Profiles, aws.Profiles(AWSConfig)...)
 		prof.Profiles = append(prof.Profiles, k8s.Profiles(kubeConfig, dryRun)...)
+		prof.Profiles = append(prof.Profiles, keyChain.Profiles()...)
 		prof.Profiles = append(prof.Profiles, *iterm.NewProfile(DefaultProfile, map[string]string{
 			"AllowTitleSetting": "true",
 			"BadgeText":         "",

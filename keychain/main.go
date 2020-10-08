@@ -3,7 +3,7 @@ package keychain
 import (
 	"fmt"
 
-	kc "github.com/keybase/go-keychain"
+	"github.com/keybase/go-keychain"
 	"github.com/mhristof/germ/iterm"
 	"github.com/mhristof/germ/log"
 )
@@ -14,11 +14,11 @@ type KeyChain struct {
 }
 
 func (k *KeyChain) Add(name, value string) {
-	item := kc.NewGenericPassword(k.Service, name, name, []byte(value), k.AccessGroup)
-	item.SetSynchronizable(kc.SynchronizableNo)
-	item.SetAccessible(kc.AccessibleWhenUnlocked)
-	err := kc.AddItem(item)
-	if err == kc.ErrorDuplicateItem {
+	item := keychain.NewGenericPassword(k.Service, name, name, []byte(value), k.AccessGroup)
+	item.SetSynchronizable(keychain.SynchronizableNo)
+	item.SetAccessible(keychain.AccessibleWhenUnlocked)
+	err := keychain.AddItem(item)
+	if err == keychain.ErrorDuplicateItem {
 		log.WithFields(log.Fields{
 			"name": name,
 		}).Fatal("Duplicate secret")
@@ -28,7 +28,7 @@ func (k *KeyChain) Add(name, value string) {
 }
 
 func (k *KeyChain) List() []string {
-	accounts, err := kc.GetGenericPasswordAccounts(k.Service)
+	accounts, err := keychain.GetGenericPasswordAccounts(k.Service)
 	if err != nil {
 		log.WithFields(log.Fields{
 			"k.Service": k.Service,
@@ -44,7 +44,7 @@ func (k *KeyChain) Delete(name string) {
 		"name": name,
 	}).Debug("Deleting keychain object")
 
-	err := kc.DeleteGenericPasswordItem(k.Service, name)
+	err := keychain.DeleteGenericPasswordItem(k.Service, name)
 	if err != nil {
 		log.WithFields(log.Fields{
 			"name": name,
