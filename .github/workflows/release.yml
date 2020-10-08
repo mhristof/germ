@@ -32,13 +32,3 @@ jobs:
             asset_path: ./bin/germ.darwin
             asset_name: germ.darwin
             asset_content_type: application/octet-stream
-        - name: Upload Release Asset (linux)
-          id: upload-release-asset-linux
-          uses: actions/upload-release-asset@v1
-          env:
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          with:
-            upload_url: ${{ steps.create_release.outputs.upload_url }}
-            asset_path: ./bin/germ.linux
-            asset_name: germ.linux
-            asset_content_type: application/octet-stream
