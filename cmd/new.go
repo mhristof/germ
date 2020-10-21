@@ -4,14 +4,15 @@ import (
 	"encoding/csv"
 	"fmt"
 	"io/ioutil"
-	"path/filepath"
 	"strings"
 	"syscall"
 
 	"github.com/mhristof/germ/keychain"
 	"github.com/mhristof/germ/log"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"golang.org/x/crypto/ssh/terminal"
+	"gopkg.in/ini.v1"
 )
 
 var (
@@ -56,48 +57,71 @@ func findPassword(file string) string {
 	return string(bytePassword)
 }
 
+func loadRootKey(file string) (string, error) {
+	cfg, err := ini.Load(file)
+	if err != nil {
+		return "", errors.Wrap(err, "cannot read ini file")
+	}
+
+	keyID, err := cfg.Section("").GetKey("AWSAccessKeyId")
+	if err != nil {
+		return "", errors.Wrap(err, "could not find AWSAccessKeyId key")
+	}
+
+	secretKey, err := cfg.Section("").GetKey("AWSSecretKey")
+	if err != nil {
+		return "", errors.Wrap(err, "could not find AWSSecretKey key")
+	}
+
+	return exportAWS(keyID.String(), secretKey.String()), nil
+}
+
+func loadCredentials(file string) (string, error) {
+	records := slurpCsv(file)
+
+	if len(records[0]) < 4 {
+		return "", errors.New("invalid number of columns")
+	}
+
+	if records[0][2] != "Access key ID" {
+		return "", errors.New("invalid header for AWS creds file")
+	}
+
+	if records[0][3] != "Secret access key" {
+		return "", errors.New("invalid header for AWS creds file")
+	}
+
+	return exportAWS(records[1][2], records[1][3]), nil
+}
+
+func loadAccessKeys(file string) (string, error) {
+	records := slurpCsv(file)
+
+	if records[0][0] != "Access key ID" {
+		return "", errors.New("invalid header for AWS creds file")
+	}
+
+	if records[0][1] != "Secret access key" {
+		return "", errors.New("invalid header for AWS creds file")
+	}
+
+	return exportAWS(records[1][0], records[1][1]), nil
+}
+
 func handleFile(file string) string {
-	base := filepath.Base(file)
-	if strings.Contains(base, "credentials") && strings.HasSuffix(file, "csv") {
-		records := slurpCsv(file)
-
-		if records[0][2] != "Access key ID" {
-			log.WithFields(log.Fields{
-				"records[0][2]": records[0][2],
-				"file":          file,
-			}).Fatal("Invalid header for AWS creds file")
-		}
-
-		if records[0][3] != "Secret access key" {
-			log.WithFields(log.Fields{
-				"records[0][3]": records[0][3],
-				"file":          file,
-			}).Fatal("Invalid header for AWS creds file")
-		}
-
-		return exportAWS(records[1][2], records[1][3])
+	funcs := []func(string) (string, error){
+		loadRootKey,
+		loadCredentials,
+		loadAccessKeys,
 	}
 
-	if strings.Contains(base, "accessKeys") && strings.HasSuffix(file, "csv") {
-		records := slurpCsv(file)
-
-		if records[0][0] != "Access key ID" {
-			log.WithFields(log.Fields{
-				"records[0][0]": records[0][0],
-				"file":          file,
-			}).Fatal("Invalid header for AWS creds file")
+	for _, f := range funcs {
+		ret, err := f(file)
+		if err == nil {
+			return ret
 		}
-
-		if records[0][1] != "Secret access key" {
-			log.WithFields(log.Fields{
-				"records[0][1]": records[0][1],
-				"file":          file,
-			}).Fatal("Invalid header for AWS creds file")
-
-		}
-
-		return exportAWS(records[1][0], records[1][1])
 	}
+
 	log.WithFields(log.Fields{
 		"file": file,
 	}).Fatal("Cannot handle this creds file")

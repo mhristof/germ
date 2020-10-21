@@ -37,6 +37,15 @@ func TestHandleFile(t *testing.T) {
 			`),
 			exp: "export AWS_ACCESS_KEY_ID=AKIAqqqqqqqqqqqqqqqq AWS_SECRET_ACCESS_KEY=1f1GsZqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq",
 		},
+		{
+			name:     "aws root key file",
+			fileName: "rootkey.csv",
+			contents: heredoc.Doc(`
+				AWSAccessKeyId=AKIAqqqqqqqqqqqqqqqq
+				AWSSecretKey=1f1GsZqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+			`),
+			exp: "export AWS_ACCESS_KEY_ID=AKIAqqqqqqqqqqqqqqqq AWS_SECRET_ACCESS_KEY=1f1GsZqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq",
+		},
 	}
 
 	for _, test := range cases {

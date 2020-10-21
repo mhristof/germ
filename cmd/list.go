@@ -7,8 +7,9 @@ import (
 )
 
 var listCmd = &cobra.Command{
-	Use:   "list",
-	Short: "List the keychain profiles",
+	Use:     "list",
+	Aliases: []string{"ls"},
+	Short:   "List the keychain profiles",
 	Run: func(cmd *cobra.Command, args []string) {
 		Verbose(cmd)
 
