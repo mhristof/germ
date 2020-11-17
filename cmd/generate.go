@@ -21,6 +21,7 @@ var (
 	kubeConfig     string
 	diff           bool
 	AWSConfig      = expandUser("~/.aws/config")
+	AWSCredentials = expandUser("~/.aws/credentials")
 	DefaultProfile = "default-profile"
 )
 
@@ -48,6 +49,7 @@ var generateCmd = &cobra.Command{
 		var prof iterm.Profiles
 
 		prof.Profiles = append(prof.Profiles, aws.Profiles(AWSConfig)...)
+		prof.Profiles = append(prof.Profiles, aws.Profiles(AWSCredentials)...)
 		prof.Profiles = append(prof.Profiles, k8s.Profiles(kubeConfig, dryRun)...)
 		prof.Profiles = append(prof.Profiles, keyChain.Profiles()...)
 		prof.Profiles = append(prof.Profiles, *iterm.NewProfile(DefaultProfile, map[string]string{
@@ -127,6 +129,11 @@ func init() {
 		&AWSConfig, "aws-config", "a",
 		AWSConfig,
 		"AWS config file path",
+	)
+	generateCmd.Flags().StringVarP(
+		&AWSCredentials, "aws-credentials", "a",
+		AWSCredentials,
+		"AWS credentials file path",
 	)
 	generateCmd.Flags().StringVarP(
 		&kubeConfig, "kube-config", "k",
