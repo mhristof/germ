@@ -131,7 +131,7 @@ func init() {
 		"AWS config file path",
 	)
 	generateCmd.Flags().StringVarP(
-		&AWSCredentials, "aws-credentials", "a",
+		&AWSCredentials, "aws-credentials", "c",
 		AWSCredentials,
 		"AWS credentials file path",
 	)
