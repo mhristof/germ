@@ -13,7 +13,7 @@ import (
 	"github.com/zieckey/goini"
 )
 
-func Profiles(config string) []iterm.Profile {
+func Profiles(prefix, config string) []iterm.Profile {
 	ini := goini.New()
 	err := ini.ParseFile(config)
 	if err != nil {
@@ -29,7 +29,7 @@ func Profiles(config string) []iterm.Profile {
 		if name == "" {
 			continue
 		}
-		tName := strings.TrimPrefix(name, "profile ")
+		tName := fmt.Sprintf("%s-%s", prefix, strings.TrimPrefix(name, "profile "))
 		add(&prof, fmt.Sprintf("%s", tName), section)
 	}
 

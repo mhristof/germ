@@ -28,7 +28,7 @@ var cmdCmd = &cobra.Command{
 		Verbose(cmd)
 
 		var prof = iterm.Profiles{
-			Profiles: aws.Profiles(AWSConfig),
+			Profiles: aws.Profiles("prefix", AWSConfig),
 		}
 
 		fmt.Println(strings.Join(generateCommands(prof, command), "\n"))
