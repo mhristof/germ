@@ -328,6 +328,11 @@ func Triggers() []Trigger {
 			Parameter: "apt-get update && apt-get --yes install openssh-client",
 			Regex:     "^bash: ssh-add: command not found",
 		},
+		{
+			Action:    "SendTextTrigger",
+			Parameter: "apt-get update && apt-get --yes install git",
+			Regex:     "^bash: git: command not found",
+		},
 	}
 }
 
