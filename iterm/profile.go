@@ -323,6 +323,11 @@ func Triggers() []Trigger {
 			Regex:     "^Password: .input is hidden.",
 			Partial:   true,
 		},
+		{
+			Action:    "SendTextTrigger",
+			Parameter: "apt-get update && apt-get --yes install openssh-client",
+			Regex:     "^bash: ssh-add: command not found",
+		},
 	}
 }
 

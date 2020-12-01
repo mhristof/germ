@@ -29,14 +29,14 @@ func Profiles(prefix, config string) []iterm.Profile {
 		if name == "" {
 			continue
 		}
-		tName := fmt.Sprintf("%s-%s", prefix, strings.TrimPrefix(name, "profile "))
-		add(&prof, fmt.Sprintf("%s", tName), section)
+		tName := strings.TrimPrefix(name, "profile ")
+		add(&prof, prefix, fmt.Sprintf("%s", tName), section)
 	}
 
 	return prof.Profiles
 }
 
-func add(p *iterm.Profiles, name string, config map[string]string) {
+func add(p *iterm.Profiles, prefix, name string, config map[string]string) {
 	user, err := user.Current()
 	if err != nil {
 		log.WithFields(log.Fields{
@@ -45,7 +45,11 @@ func add(p *iterm.Profiles, name string, config map[string]string) {
 	}
 
 	config["Command"] = fmt.Sprintf("/usr/bin/env AWS_PROFILE=%s /usr/bin/login -fp %s", name, user.Username)
-	profile := iterm.NewProfile(name, config)
+	pName := name
+	if prefix != "" {
+		pName = fmt.Sprintf("%s-%s", prefix, name)
+	}
+	profile := iterm.NewProfile(pName, config)
 	p.Add(*profile)
 
 	if _, found := config["source_profile"]; !found {

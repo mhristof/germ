@@ -48,7 +48,7 @@ func TestAdd(t *testing.T) {
 	for _, test := range cases {
 		var prof iterm.Profiles
 		for i, cfg := range test.config {
-			add(&prof, fmt.Sprintf("%d", i), cfg)
+			add(&prof, "", fmt.Sprintf("%d", i), cfg)
 		}
 
 		assert.Equal(t, len(test.expected), len(prof.Profiles))
