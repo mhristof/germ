@@ -70,7 +70,7 @@ func apk(name string) string {
 func apt(name string) string {
 
 	commands := []string{
-		fmt.Sprintf("(apt-get update && apt-get --yes -no-install-recommends install %s)", name),
+		fmt.Sprintf("(apt-get update && apt-get --yes --no-install-recommends install %s)", name),
 		yum(name),
 		apk(name),
 	}
