@@ -302,40 +302,6 @@ func loadUserSSR(path string) []SmartSelectionRule {
 	return userSSRs
 }
 
-func Triggers() []Trigger {
-	idRsa, err := homedir.Expand("~/.ssh/id_rsa")
-	if err != nil {
-		log.WithFields(log.Fields{
-			"err": err,
-		}).Panic("Cannot expand ~/.ssh/id_rsa")
-	}
-
-	return []Trigger{
-		{
-			Partial:   true,
-			Parameter: "id_rsa",
-			Regex:     fmt.Sprintf(`^Enter passphrase for (key ')?%s`, idRsa),
-			Action:    "PasswordTrigger",
-		},
-		{
-			Action:    "PasswordTrigger",
-			Parameter: "macos",
-			Regex:     "^Password: .input is hidden.",
-			Partial:   true,
-		},
-		{
-			Action:    "SendTextTrigger",
-			Parameter: "apt-get update && apt-get --yes install openssh-client",
-			Regex:     "^bash: ssh-add: command not found",
-		},
-		{
-			Action:    "SendTextTrigger",
-			Parameter: "apt-get update && apt-get --yes install git",
-			Regex:     "^bash: git: command not found",
-		},
-	}
-}
-
 func CreateKeyboardMap(config map[string]string) map[string]KeyboardMap {
 	var maps = map[string]KeyboardMap{
 		"0x5f-0x120000": KeyboardMap{
