@@ -21,17 +21,23 @@ var (
 				panic(err)
 			}
 
-			log.WithFields(log.Fields{
-				"updates": updates,
-			}).Debug("Update result")
-
-			if updates {
-				log.Info("New version is available")
-			}
-
-			if dryRun {
+			if !updates {
 				return
 			}
+
+			if silent, _ := cmd.Flags().GetBool("silent"); !silent {
+				log.WithFields(log.Fields{
+					"updates": updates,
+				}).Info("Updates available")
+			}
+
+			if dryrun, _ := cmd.Flags().GetBool("dryrun"); dryrun {
+				return
+			}
+
+			log.WithFields(log.Fields{
+				"url": url,
+			}).Info("Downloading new version")
 
 			updateFunc()
 		},
