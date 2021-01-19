@@ -48,6 +48,11 @@ func Triggers() []Trigger {
 			Parameter: apt("iputils-ping"),
 			Regex:     notFound("ping"),
 		},
+		{
+			Action:    "SendTextTrigger",
+			Parameter: "terraform init",
+			Regex:     `^This module is not yet installed. Run "terraform init" to install all modules`,
+		},
 	}
 }
 
