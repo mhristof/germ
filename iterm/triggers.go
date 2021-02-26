@@ -53,6 +53,11 @@ func Triggers() []Trigger {
 			Parameter: "terraform init",
 			Regex:     `^This module is not yet installed. Run "terraform init" to install all modules`,
 		},
+		{
+			Action:    "SendTextTrigger",
+			Parameter: "chmod +x !$ && !!",
+			Regex:     `^zsh: permission denied: .*`,
+		},
 	}
 }
 
