@@ -91,13 +91,16 @@ func (k *KubeConfig) Profile(path string) *iterm.Profile {
 		}).Fatal("Cannot handle multiple cluster definitions")
 	}
 
+	var tags = map[string]string{
+		"Tags": "k8s",
+	}
+	cmd := fmt.Sprintf("/usr/bin/env KUBECONFIG=%s", path)
+
 	name := k.Clusters[0].Name
 	awsProfile := k.AWSProfile()
-	if awsProfile == "" {
-		log.WithFields(log.Fields{
-			"awsProfile": awsProfile,
-			"cluster":    name,
-		}).Fatal("Not found in cluster")
+	if awsProfile != "" {
+		cmd = fmt.Sprintf("%s AWS_PROFILE=%s", cmd, awsProfile)
+		tags["Tags"] += ",aws-profile=" + awsProfile
 	}
 
 	user, err := user.Current()
@@ -107,19 +110,9 @@ func (k *KubeConfig) Profile(path string) *iterm.Profile {
 		}).Fatal("Cannot find current user")
 	}
 
-	cmd := fmt.Sprintf(
-		"/usr/bin/env KUBECONFIG=%s AWS_PROFILE=%s /usr/bin/login -fp %s",
-		path,
-		awsProfile,
-		user.Username,
-	)
-	prof := iterm.NewProfile(
-		fmt.Sprintf("k8s-%s", name),
-		map[string]string{
-			"Command": cmd,
-			"Tags":    fmt.Sprintf("k8s,aws-profile=%s", awsProfile),
-		},
-	)
+	cmd = fmt.Sprintf("%s /usr/bin/login -fp %s", cmd, user.Username)
+	tags["Command"] = cmd
+	prof := iterm.NewProfile(fmt.Sprintf("k8s-%s", name), tags)
 
 	return prof
 }
