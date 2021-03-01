@@ -1,11 +1,21 @@
 package k8s
 
 import (
+	"os/user"
 	"testing"
 
 	"github.com/mhristof/germ/iterm"
 	"github.com/stretchr/testify/assert"
 )
+
+func getUser(t *testing.T) string {
+	user, err := user.Current()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	return user.Name
+}
 
 func TestProfile(t *testing.T) {
 	var cases = []struct {
@@ -40,7 +50,7 @@ func TestProfile(t *testing.T) {
 				},
 			},
 			out:     &iterm.Profile{},
-			command: "/usr/bin/env KUBECONFIG=path AWS_PROFILE=profile /usr/bin/login -fp mhristof",
+			command: "/usr/bin/env KUBECONFIG=path AWS_PROFILE=profile /usr/bin/login -fp " + getUser(t),
 			tags:    []string{"k8s", "aws-profile=profile"},
 		},
 		{
@@ -58,7 +68,7 @@ func TestProfile(t *testing.T) {
 				},
 			},
 			out:     &iterm.Profile{},
-			command: "/usr/bin/env KUBECONFIG=path /usr/bin/login -fp mhristof",
+			command: "/usr/bin/env KUBECONFIG=path /usr/bin/login -fp " + getUser(t),
 			tags:    []string{"k8s"},
 		},
 	}
