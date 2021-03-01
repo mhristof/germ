@@ -337,6 +337,8 @@ func (p *Profiles) UpdateKeyboardMaps() {
 			continue
 		}
 
+		fmt.Println(fmt.Sprintf("awsProfile: %+v", awsProfile))
+
 		sourceProfile, found := p.FindGUID(awsProfile)
 
 		if !found {
