@@ -46,13 +46,15 @@ type Context struct {
 
 type User struct {
 	Name string `yaml:"name"`
-	User struct {
-		ClientCertificate     string `yaml:"client-certificate,omitempty"`
-		ClientCertificateData string `yaml:"client-certificate-data,omitempty"`
-		ClientKey             string `yaml:"client-key,omitempty"`
-		ClientKeyData         string `yaml:"client-key-data,omitempty"`
-		Exec                  Exec   `yaml:"exec,omitempty"`
-	} `yaml:"user"`
+	User UserT  `yaml:"user"`
+}
+
+type UserT struct {
+	ClientCertificate     string `yaml:"client-certificate,omitempty"`
+	ClientCertificateData string `yaml:"client-certificate-data,omitempty"`
+	ClientKey             string `yaml:"client-key,omitempty"`
+	ClientKeyData         string `yaml:"client-key-data,omitempty"`
+	Exec                  Exec   `yaml:"exec,omitempty"`
 }
 
 type Exec struct {
