@@ -12,26 +12,47 @@ type KubeConfig struct {
 
 type Cluster struct {
 	Cluster struct {
-		CertificateAuthorityData string `yaml:"certificate-authority-data"`
-		Server                   string `yaml:"server"`
+		CertificateAuthority     string `yaml:"certificate-authority,omitempty"`
+		CertificateAuthorityData string `yaml:"certificate-authority-data,omitempty"`
+		Extensions               []struct {
+			Extension struct {
+				Lastupdate string `yaml:"last-update"`
+				Provider   string `yaml:"provider"`
+				Version    string `yaml:"version"`
+			} `yaml:"extension"`
+			Name string `yaml:"name"`
+		} `yaml:"extensions"`
+		Server string `yaml:"server"`
 	} `yaml:"cluster"`
 	Name string `yaml:"name"`
 }
 
 type Context struct {
 	Context struct {
-		Cluster string `yaml:"cluster"`
-		User    string `yaml:"user"`
-	} `yaml:"context"`
+		Cluster    string `yaml:"cluster"`
+		Extensions []struct {
+			Extension struct {
+				Lastupdate string `yaml:"last-update,omitempty"`
+				Provider   string `yaml:"provider,omitempty"`
+				Version    string `yaml:"version,omitempty"`
+			} `yaml:"extension,omitempty"`
+			Name string `yaml:"name"`
+		} `yaml:"extensions,omitempty"`
+		Namespace string `yaml:"namespace"`
+		User      string `yaml:"user"`
+	} `yaml:"context,omitempty"`
 	Name string `yaml:"name"`
 }
 
 type User struct {
 	Name string `yaml:"name"`
-	User UserT  `yaml:"user"`
-}
-type UserT struct {
-	Exec Exec `yaml:"exec"`
+	User struct {
+		ClientCertificate     string `yaml:"client-certificate,omitempty"`
+		ClientCertificateData string `yaml:"client-certificate-data,omitempty"`
+		ClientKey             string `yaml:"client-key,omitempty"`
+		ClientKeyData         string `yaml:"client-key-data,omitempty"`
+		Exec                  Exec   `yaml:"exec,omitempty"`
+	} `yaml:"user"`
 }
 
 type Exec struct {

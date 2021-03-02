@@ -14,7 +14,7 @@ func getUser(t *testing.T) string {
 		t.Fatal(err)
 	}
 
-	return user.Name
+	return user.Username
 }
 
 func TestProfile(t *testing.T) {
