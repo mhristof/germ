@@ -1,9 +1,15 @@
 package k8s
 
 import (
+	"fmt"
+	"io/ioutil"
+	"os"
 	"os/user"
+	"path/filepath"
+	"strings"
 	"testing"
 
+	"github.com/MakeNowJust/heredoc"
 	"github.com/mhristof/germ/iterm"
 	"github.com/stretchr/testify/assert"
 )
@@ -77,6 +83,129 @@ func TestProfile(t *testing.T) {
 		prof := test.in.Profile("path")
 		assert.Equal(t, test.command, prof.Command, test.name)
 		assert.Equal(t, test.tags, prof.Tags, test.name)
-		//assert.Equal(t, test.out, test.in.Profile("path"), test.name)
 	}
+}
+
+func TestLoadAndSplit(t *testing.T) {
+	var cases = []struct {
+		name string
+		in   string
+		out  map[string]string
+	}{
+		{
+			name: "simple config with a couple of clusters",
+			in: heredoc.Doc(`
+				apiVersion: v1
+				clusters:
+				- cluster:
+					certificate-authority-data: data
+					server: https://kubernetes.docker.internal:6443
+				  name: docker-desktop
+				- cluster:
+					certificate-authority: /path/ca.crt
+					extensions:
+					- extension:
+						last-update: Mon, 01 Mar 2021 16:01:03 GMT
+						provider: minikube.sigs.k8s.io
+						version: v1.17.1
+					  name: cluster_info
+					server: https://127.0.0.1:32768
+				  name: minikube
+				contexts:
+				- context:
+					cluster: docker-desktop
+					user: docker-desktop
+				  name: docker-desktop
+				- context:
+					cluster: minikube
+					extensions:
+					- extension:
+						last-update: Mon, 01 Mar 2021 16:01:03 GMT
+						provider: minikube.sigs.k8s.io
+						version: v1.17.1
+					  name: context_info
+					namespace: default
+					user: minikube
+				  name: minikube
+				current-context: minikube
+				kind: Config
+				preferences: {}
+				users:
+				- name: docker-desktop
+				  user:
+					client-certificate-data: data
+					client-key-data: data
+				- name: minikube
+				  user:
+					client-certificate: /path/client.crt
+					client-key: /path/client.key
+			`),
+			out: map[string]string{
+				"docker-desktop.yml": heredoc.Doc(`
+					apiVersion: v1
+					clusters:
+					- cluster:
+					    extensions: []
+					    server: ""
+					  name: docker-desktop
+					contexts:
+					- name: docker-desktop
+					kind: Config
+					preferences: {}
+					users:
+					- name: docker-desktop
+					  user: {}
+					current-context: docker-desktop
+				`),
+				"minikube.yml": heredoc.Doc(`
+					apiVersion: v1
+					clusters:
+					- cluster:
+					    extensions: []
+					    server: ""
+					  name: minikube
+					contexts:
+					- name: minikube
+					kind: Config
+					preferences: {}
+					users:
+					- name: minikube
+					  user: {}
+					current-context: minikube
+				`),
+			},
+		},
+	}
+
+	for _, test := range cases {
+		out, err := ioutil.TempDir("", "example")
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		defer os.RemoveAll(out)
+
+		config := filepath.Join(out, "config")
+
+		err = ioutil.WriteFile(config, []byte(noTabs(test.in)), 0644)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		kConfig := Load(config)
+		kConfig.SplitFiles(out)
+
+		for file, content := range test.out {
+			data, err := ioutil.ReadFile(filepath.Join(out, file))
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			assert.Equal(t, noTabs(content), string(data), fmt.Sprintf("%s/%s", test.name, file))
+		}
+	}
+}
+
+func noTabs(in string) string {
+	return strings.Replace(in, "\t", "  ", -1)
 }
