@@ -55,7 +55,7 @@ func Triggers() []Trigger {
 		},
 		{
 			Action:    "SendTextTrigger",
-			Parameter: "chmod +x !$ && !!",
+			Parameter: "chmod +x !:0 && !!",
 			Regex:     `^zsh: permission denied: .*`,
 		},
 	}
