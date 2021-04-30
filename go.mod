@@ -4,7 +4,7 @@ go 1.13
 
 require (
 	github.com/MakeNowJust/heredoc v1.0.0
-	github.com/google/go-cmp v0.5.4
+	github.com/google/go-cmp v0.5.5
 	github.com/keybase/go-keychain v0.0.0-20201121013009-976c83ec27a6
 	github.com/mhristof/go-update v0.1.0
 	github.com/mitchellh/go-homedir v1.1.0
