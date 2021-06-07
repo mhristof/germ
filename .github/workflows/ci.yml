@@ -12,6 +12,7 @@ jobs:
   automerge:
     runs-on: linux-latest
     steps:
+      - uses: actions/checkout@v2
       - name: automerge
         uses: mhristof/github-action-automerge@v1.0.1
         with:
