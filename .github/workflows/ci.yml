@@ -10,7 +10,7 @@ jobs:
       - uses: actions/checkout@v2
       - run: make test
   automerge:
-    runs-on: macos-latest
+    runs-on: linux-latest
     steps:
       - name: automerge
         uses: mhristof/github-action-automerge@v1.0.1
