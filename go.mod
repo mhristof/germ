@@ -1,6 +1,6 @@
 module github.com/mhristof/germ
 
-go 1.13
+go 1.16
 
 require (
 	github.com/MakeNowJust/heredoc v1.0.0
