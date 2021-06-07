@@ -64,6 +64,15 @@ func TestTags(t *testing.T) {
 				"123456789012",
 			},
 		},
+		{
+			name: "section with sso_account_id",
+			config: map[string]string{
+				"sso_account_id": "123456789012",
+			},
+			result: []string{
+				"account=123456789012",
+			},
+		},
 	}
 
 	for _, test := range cases {
@@ -192,6 +201,80 @@ func TestUpdateKeyboardMaps(t *testing.T) {
 	for _, test := range cases {
 		test.profiles.UpdateKeyboardMaps()
 		assert.Equal(t, test.profiles.Profiles[1].KeyboardMap["0x61-0x80000"].Text, "tada!")
+	}
+}
+
+func TestUpdateAWSSmartSelectionRules(t *testing.T) {
+	var cases = []struct {
+		name     string
+		profiles Profiles
+		exp      []SmartSelectionRule
+	}{
+		{
+			name: "One profile with an account tag",
+			profiles: Profiles{
+				Profiles: []Profile{
+					{
+						Name: "account 1",
+						Tags: []string{"account=account1"},
+					},
+					{
+						Name: "account 2",
+					},
+				},
+			},
+			exp: []SmartSelectionRule{
+				{
+					Actions: []SmartSelectionRuleAction{
+						{
+							Action:    2,
+							Parameter: "osascript -e 'display notification \"account 1\" with title \"account1\"'",
+							Title:     "Notify the AWS account name",
+						},
+					},
+					Notes:     "AWS account ID for account 1",
+					Precision: "very_high",
+					Regex:     "account1",
+				},
+			},
+		},
+		{
+			name: "profile with login- prefix",
+			profiles: Profiles{
+				Profiles: []Profile{
+					{
+						Name: "account 1",
+						Tags: []string{"account=account1"},
+					},
+					{
+						Name: "login-account 1",
+						Tags: []string{"account=account1"},
+					},
+					{
+						Name: "account 2",
+					},
+				},
+			},
+			exp: []SmartSelectionRule{
+				{
+					Actions: []SmartSelectionRuleAction{
+						{
+							Action:    2,
+							Parameter: "osascript -e 'display notification \"account 1\" with title \"account1\"'",
+							Title:     "Notify the AWS account name",
+						},
+					},
+					Notes:     "AWS account ID for account 1",
+					Precision: "very_high",
+					Regex:     "account1",
+				},
+			},
+		},
+	}
+
+	for _, test := range cases {
+		test.profiles.UpdateAWSSmartSelectionRules()
+		assert.Equal(t, test.exp, test.profiles.Profiles[1].SmartSelectionRules, test.name)
 	}
 }
 

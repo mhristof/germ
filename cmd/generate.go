@@ -57,6 +57,7 @@ var generateCmd = &cobra.Command{
 			"BadgeText":         "",
 		}))
 		prof.UpdateKeyboardMaps()
+		prof.UpdateAWSSmartSelectionRules()
 
 		profJSON, err := json.MarshalIndent(prof, "", "    ")
 		if err != nil {
