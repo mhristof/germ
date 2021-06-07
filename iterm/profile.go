@@ -158,6 +158,11 @@ func NewProfile(name string, config map[string]string) *Profile {
 
 func Tags(c map[string]string) []string {
 	var tags []string
+
+	if account, ok := c["sso_account_id"]; ok == true {
+		tags = append(tags, fmt.Sprintf("account=%s", account))
+	}
+
 	v, found := c["source_profile"]
 	if found {
 		tags = append(tags, fmt.Sprintf("source-profile=%s", v))
@@ -325,6 +330,45 @@ func CreateKeyboardMap(config map[string]string) map[string]KeyboardMap {
 	return maps
 }
 
+func (p *Profiles) UpdateAWSSmartSelectionRules() {
+	accounts := map[string]string{}
+
+	for _, profile := range p.Profiles {
+		for _, tag := range profile.Tags {
+			if !strings.HasPrefix(tag, "account=") {
+				continue
+			}
+
+			if strings.HasPrefix(profile.Name, "login-") {
+				continue
+			}
+
+			accounts[profile.Name] = strings.Split(tag, "=")[1]
+		}
+	}
+
+	var ssr []SmartSelectionRule
+	for name, id := range accounts {
+		ssr = append(ssr, SmartSelectionRule{
+			Actions: []SmartSelectionRuleAction{
+				{
+					Title:     "Notify the AWS account name",
+					Action:    2,
+					Parameter: fmt.Sprintf("osascript -e 'display notification \"%s\" with title \"%s\"'", name, id),
+				},
+			},
+			Notes:     fmt.Sprintf("AWS account ID for %s", name),
+			Precision: "very_high",
+			Regex:     id,
+		})
+	}
+
+	for i, _ := range p.Profiles {
+		p.Profiles[i].SmartSelectionRules = append(p.Profiles[i].SmartSelectionRules, ssr...)
+	}
+
+}
+
 func (p *Profiles) UpdateKeyboardMaps() {
 	for _, profile := range p.Profiles {
 		if !profile.HasTag("k8s") {
@@ -428,4 +472,9 @@ func (p *Profile) Colors() {
 		p.BackgroundColor.GreenComponent = 0
 		return
 	}
+	p.BackgroundColor.ColorSpace = "sRGB"
+	p.BackgroundColor.RedComponent = 0
+	p.BackgroundColor.GreenComponent = 0
+	p.BackgroundColor.BlueComponent = 0
+	p.BackgroundColor.AlphaComponent = 1
 }
