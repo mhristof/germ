@@ -197,6 +197,18 @@ func Tags(c map[string]string) []string {
 func SmartSelectionRules(custom string) []SmartSelectionRule {
 	var ssr = []SmartSelectionRule{
 		{
+			Notes:     "shellcheck code",
+			Precision: "normal",
+			Regex:     `(SC\d*)`,
+			Actions: []SmartSelectionRuleAction{
+				SmartSelectionRuleAction{
+					Title:     "open webpage",
+					Action:    1,
+					Parameter: `https://github.com/koalaman/shellcheck/wiki/\1`,
+				},
+			},
+		},
+		{
 			Notes:     "terraform aws resource",
 			Precision: "normal",
 			Regex:     `resource "aws_([a-zA-Z_]*)"`,
