@@ -18,6 +18,10 @@ all: ./bin/germ.darwin
 ./bin/germ.%: $(shell find ./ -name '*.go')
 	GOOS=$* go build -o $@ -ldflags "-X github.com/mhristof/germ/cmd.version=$(GIT_TAG)+$(GIT_REF)" main.go
 
+.PHONY: install
+install: ./bin/germ.darwin
+	cp ./bin/germ.darwin $(HOME)/bin/germ
+
 gen:
 	go run main.go generate -n
 .PHONY: gen
