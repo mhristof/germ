@@ -15,11 +15,10 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/riywo/loginshell v0.0.0-20200815045211-7d26008be1ab
 	github.com/sirupsen/logrus v1.8.1
-	github.com/spf13/cobra v1.1.3
+	github.com/spf13/cobra v1.2.0
 	github.com/stretchr/testify v1.7.0
 	github.com/zieckey/goini v0.0.0-20180118150432-0da17d361d26
 	golang.org/x/crypto v0.0.0-20201221181555-eec23a3978ad
-	golang.org/x/sys v0.0.0-20201231184435-2d18734c6014 // indirect
 	golang.org/x/term v0.0.0-20201210144234-2321bbc49cbf // indirect
 	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
 	gopkg.in/ini.v1 v1.62.0
