@@ -15,7 +15,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/riywo/loginshell v0.0.0-20200815045211-7d26008be1ab
 	github.com/sirupsen/logrus v1.8.1
-	github.com/spf13/cobra v1.2.0
+	github.com/spf13/cobra v1.2.1
 	github.com/stretchr/testify v1.7.0
 	github.com/zieckey/goini v0.0.0-20180118150432-0da17d361d26
 	golang.org/x/crypto v0.0.0-20201221181555-eec23a3978ad
