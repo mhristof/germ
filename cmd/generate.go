@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"os"
 	"sort"
 
 	"github.com/google/go-cmp/cmp"
@@ -48,8 +49,13 @@ var generateCmd = &cobra.Command{
 
 		var prof iterm.Profiles
 
+		//sso, err := awssso.Load("")
+		//sso.Accounts()
+
 		prof.Profiles = append(prof.Profiles, aws.Profiles("config", AWSConfig)...)
-		prof.Profiles = append(prof.Profiles, aws.Profiles("credentials", AWSCredentials)...)
+		if _, err := os.Stat(AWSCredentials); os.IsExist(err) {
+			prof.Profiles = append(prof.Profiles, aws.Profiles("credentials", AWSCredentials)...)
+		}
 		prof.Profiles = append(prof.Profiles, k8s.Profiles(kubeConfig, dryRun)...)
 		prof.Profiles = append(prof.Profiles, keyChain.Profiles()...)
 		prof.Profiles = append(prof.Profiles, *iterm.NewProfile(DefaultProfile, map[string]string{

@@ -72,6 +72,6 @@ The user can define her own Smart selection rules in a file called `~/.germ.ssr.
           "parameter" : "https://issues.jenkins-ci.org/browse/\\0"
         }
       ]
-    },
+    }
 ]
 ```

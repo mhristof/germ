@@ -4,6 +4,7 @@ go 1.16
 
 require (
 	github.com/MakeNowJust/heredoc v1.0.0
+	github.com/aws/aws-sdk-go v1.39.6 // indirect
 	github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869 // indirect
 	github.com/google/go-cmp v0.5.6
 	github.com/keybase/go-keychain v0.0.0-20201121013009-976c83ec27a6
