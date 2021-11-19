@@ -100,7 +100,6 @@ func (p *Profile) FindTag(key string) (string, bool) {
 }
 
 func (p *Profiles) FindGUID(guid string) (Profile, bool) {
-
 	for _, prof := range p.Profiles {
 		if prof.GUID == guid {
 			return prof, true
@@ -110,7 +109,7 @@ func (p *Profiles) FindGUID(guid string) (Profile, bool) {
 }
 
 func NewProfile(name string, config map[string]string) *Profile {
-	var prof = Profile{
+	prof := Profile{
 		Name:                name,
 		GUID:                name,
 		Tags:                Tags(config),
@@ -146,7 +145,6 @@ func NewProfile(name string, config map[string]string) *Profile {
 				"v":    v,
 				"name": name,
 			}).Fatal("Value is not convertable to bool")
-
 		}
 
 		prof.AllowTitleSetting = value
@@ -195,7 +193,7 @@ func Tags(c map[string]string) []string {
 }
 
 func SmartSelectionRules(custom string) []SmartSelectionRule {
-	var ssr = []SmartSelectionRule{
+	ssr := []SmartSelectionRule{
 		{
 			Notes:     "shellcheck code",
 			Precision: "normal",
@@ -280,6 +278,18 @@ func SmartSelectionRules(custom string) []SmartSelectionRule {
 				},
 			},
 		},
+		{
+			Notes:     "git restore --staged",
+			Precision: "normal",
+			Regex:     "^\\s*modified:\\s*(.*)",
+			Actions: []SmartSelectionRuleAction{
+				{
+					Title:     "git restore",
+					Action:    4,
+					Parameter: "git restore --staged \\1",
+				},
+			},
+		},
 	}
 
 	return append(ssr, loadUserSSR(custom)...)
@@ -320,7 +330,7 @@ func loadUserSSR(path string) []SmartSelectionRule {
 }
 
 func CreateKeyboardMap(config map[string]string) map[string]KeyboardMap {
-	var maps = map[string]KeyboardMap{
+	maps := map[string]KeyboardMap{
 		"0x5f-0x120000": KeyboardMap{
 			Action: 25,
 			Text:   "Split Horizontally with Current Profile\nSplit Horizontally with Current Profile",
@@ -378,7 +388,6 @@ func (p *Profiles) UpdateAWSSmartSelectionRules() {
 	for i, _ := range p.Profiles {
 		p.Profiles[i].SmartSelectionRules = append(p.Profiles[i].SmartSelectionRules, ssr...)
 	}
-
 }
 
 func (p *Profiles) UpdateKeyboardMaps() {
@@ -429,7 +438,7 @@ func (p *Profiles) SourceProfiles() []string {
 }
 
 func (p *Profiles) ProfileTree() map[string][]string {
-	var ret = map[string][]string{}
+	ret := map[string][]string{}
 
 	for _, profile := range p.Profiles {
 		for _, tag := range profile.Tags {
