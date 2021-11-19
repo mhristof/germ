@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/MakeNowJust/heredoc"
 	"github.com/mhristof/germ/log"
@@ -12,7 +13,7 @@ import (
 )
 
 func TestTags(t *testing.T) {
-	var cases = []struct {
+	cases := []struct {
 		name   string
 		config map[string]string
 		result []string
@@ -48,7 +49,8 @@ func TestTags(t *testing.T) {
 		{
 			name: "comma separated tags",
 			config: map[string]string{
-				"Tags": "this,that",
+				"Tags":       "this,that",
+				"timestamps": "false",
 			},
 			result: []string{
 				"this",
@@ -58,7 +60,8 @@ func TestTags(t *testing.T) {
 		{
 			name: "section with role_arn",
 			config: map[string]string{
-				"role_arn": "arn:aws:iam::123456789012:role/name",
+				"role_arn":   "arn:aws:iam::123456789012:role/name",
+				"timestamps": "false",
 			},
 			result: []string{
 				"123456789012",
@@ -68,21 +71,37 @@ func TestTags(t *testing.T) {
 			name: "section with sso_account_id",
 			config: map[string]string{
 				"sso_account_id": "123456789012",
+				"timestamps":     "false",
 			},
 			result: []string{
 				"account=123456789012",
 			},
+		},
+		{
+			name: "section with timestamps",
+			config: map[string]string{
+				"timestamps": "true",
+			},
+			result: []string{
+				time.Now().Format(time.RFC3339),
+			},
+		},
+		{
+			name: "section without timestamps",
+			config: map[string]string{
+				"timestamps": "false",
+			},
+			result: []string{},
 		},
 	}
 
 	for _, test := range cases {
 		assert.Equal(t, test.result, Tags(test.config), test.name)
 	}
-
 }
 
 func TestNewProfile(t *testing.T) {
-	var cases = []struct {
+	cases := []struct {
 		name   string
 		config map[string]string
 		eval   func(*Profile) bool
@@ -169,7 +188,7 @@ func TestNewProfile(t *testing.T) {
 }
 
 func TestUpdateKeyboardMaps(t *testing.T) {
-	var cases = []struct {
+	cases := []struct {
 		name     string
 		profiles Profiles
 	}{
@@ -205,7 +224,7 @@ func TestUpdateKeyboardMaps(t *testing.T) {
 }
 
 func TestUpdateAWSSmartSelectionRules(t *testing.T) {
-	var cases = []struct {
+	cases := []struct {
 		name     string
 		profiles Profiles
 		exp      []SmartSelectionRule
@@ -279,7 +298,7 @@ func TestUpdateAWSSmartSelectionRules(t *testing.T) {
 }
 
 func TestColors(t *testing.T) {
-	var cases = []struct {
+	cases := []struct {
 		name    string
 		profile Profile
 		exp     func(Profile) bool
@@ -350,7 +369,7 @@ func TestColors(t *testing.T) {
 }
 
 func TestSmartSelectionRules(t *testing.T) {
-	var cases = []struct {
+	cases := []struct {
 		name           string
 		customContents string
 		exp            func(rules []SmartSelectionRule) bool
@@ -403,7 +422,6 @@ func tempFile(contents string) (string, func()) {
 		log.WithFields(log.Fields{
 			"err": err,
 		}).Fatal("Cannot write to temp file")
-
 	}
 	return tmpfn, func() {
 		os.RemoveAll(dir)
@@ -411,7 +429,7 @@ func tempFile(contents string) (string, func()) {
 }
 
 func TestProfileTree(t *testing.T) {
-	var cases = []struct {
+	cases := []struct {
 		name     string
 		profiles Profiles
 		out      map[string][]string

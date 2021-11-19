@@ -7,6 +7,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/mhristof/germ/log"
 	"github.com/mitchellh/go-homedir"
@@ -155,7 +156,18 @@ func NewProfile(name string, config map[string]string) *Profile {
 }
 
 func Tags(c map[string]string) []string {
-	var tags []string
+	tags := []string{}
+
+	if tsValue, ok := c["timestamps"]; ok {
+		b, err := strconv.ParseBool(tsValue)
+		if err != nil {
+			panic(err)
+		}
+
+		if b {
+			tags = append(tags, time.Now().Format(time.RFC3339))
+		}
+	}
 
 	if account, ok := c["sso_account_id"]; ok == true {
 		tags = append(tags, fmt.Sprintf("account=%s", account))
