@@ -1,6 +1,7 @@
 package iterm
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -22,6 +23,7 @@ func TestTags(t *testing.T) {
 			name: "Source profile",
 			config: map[string]string{
 				"source_profile": "bar",
+				"timestamps":     "false",
 			},
 			result: []string{
 				"source-profile=bar",
@@ -32,6 +34,7 @@ func TestTags(t *testing.T) {
 			name: "account from azure app id",
 			config: map[string]string{
 				"azure_app_id_uri": `https://signin.aws.amazon.com/saml\#123456789012`,
+				"timestamps":       "false",
 			},
 			result: []string{
 				"123456789012",
@@ -41,6 +44,7 @@ func TestTags(t *testing.T) {
 			name: "azure_default_role_arn",
 			config: map[string]string{
 				"azure_default_role_arn": `arn:aws:iam::123456789012:role/thisRole`,
+				"timestamps":             "false",
 			},
 			result: []string{
 				"role/thisRole",
@@ -96,6 +100,7 @@ func TestTags(t *testing.T) {
 	}
 
 	for _, test := range cases {
+		fmt.Println(fmt.Sprintf("test: %+v", test))
 		assert.Equal(t, test.result, Tags(test.config), test.name)
 	}
 }
@@ -132,7 +137,7 @@ func TestNewProfile(t *testing.T) {
 				"Tags": "this,that",
 			},
 			eval: func(p *Profile) bool {
-				return p.Tags[0] == "this" && p.Tags[1] == "that"
+				return p.Tags[1] == "this" && p.Tags[2] == "that"
 			},
 		},
 		{

@@ -24,7 +24,7 @@ func getUser(t *testing.T) string {
 }
 
 func TestProfile(t *testing.T) {
-	var cases = []struct {
+	cases := []struct {
 		name    string
 		in      *KubeConfig
 		out     *iterm.Profile
@@ -82,12 +82,12 @@ func TestProfile(t *testing.T) {
 	for _, test := range cases {
 		prof := test.in.Profile("path")
 		assert.Equal(t, test.command, prof.Command, test.name)
-		assert.Equal(t, test.tags, prof.Tags, test.name)
+		assert.Equal(t, test.tags, prof.Tags[1:], test.name)
 	}
 }
 
 func TestLoadAndSplit(t *testing.T) {
-	var cases = []struct {
+	cases := []struct {
 		name string
 		in   string
 		out  map[string]string

@@ -158,15 +158,10 @@ func NewProfile(name string, config map[string]string) *Profile {
 func Tags(c map[string]string) []string {
 	tags := []string{}
 
-	if tsValue, ok := c["timestamps"]; ok {
-		b, err := strconv.ParseBool(tsValue)
-		if err != nil {
-			panic(err)
-		}
-
-		if b {
-			tags = append(tags, time.Now().Format(time.RFC3339))
-		}
+	tsValue, ok := c["timestamps"]
+	b, err := strconv.ParseBool(tsValue)
+	if !ok || (err == nil && b) {
+		tags = append(tags, time.Now().Format(time.RFC3339))
 	}
 
 	if account, ok := c["sso_account_id"]; ok == true {
@@ -298,7 +293,7 @@ func SmartSelectionRules(custom string) []SmartSelectionRule {
 				{
 					Title:     "git restore",
 					Action:    4,
-					Parameter: "git restore --staged \\1",
+					Parameter: "git restore --staged \\1;",
 				},
 			},
 		},

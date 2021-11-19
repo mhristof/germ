@@ -20,7 +20,7 @@ func Profiles(prefix, config string) []iterm.Profile {
 		log.WithFields(log.Fields{
 			"config": config,
 			"err":    err.Error(),
-		}).Error("paarseINI file failed.")
+		}).Warning("paarseINI file failed.")
 		return nil
 	}
 
@@ -82,7 +82,6 @@ func loginCmd(name string, config map[string]string) string {
 		"bash -c 'AWS_PROFILE=%s PATH=%s NODE_EXTRA_CA_CERTS=%s %s || sleep 60'",
 		name, filepath.Dir(bin), os.Getenv("NODE_EXTRA_CA_CERTS"), toolCmd,
 	)
-
 }
 
 // Regions retrieve all AWS regions. This list is generated from
