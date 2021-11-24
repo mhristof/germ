@@ -22,9 +22,7 @@ func (k *KeyChain) Add(name, value string) {
 		log.WithFields(log.Fields{
 			"name": name,
 		}).Fatal("Duplicate secret")
-
 	}
-
 }
 
 func (k *KeyChain) List() []string {
@@ -33,7 +31,6 @@ func (k *KeyChain) List() []string {
 		log.WithFields(log.Fields{
 			"k.Service": k.Service,
 		}).Fatal("Cannot retrieve the accounts")
-
 	}
 
 	return accounts
@@ -50,12 +47,10 @@ func (k *KeyChain) Delete(name string) {
 			"name": name,
 			"err":  err,
 		}).Fatal("Failed to delete")
-
 	}
 }
 
 func (k *KeyChain) Profiles() []iterm.Profile {
-
 	var ret []iterm.Profile
 	for _, account := range k.List() {
 		prof := iterm.NewProfile(fmt.Sprintf("custom/%s", account), map[string]string{})
