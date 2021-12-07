@@ -20,11 +20,24 @@ func Triggers() []Trigger {
 		}).Panic("Cannot expand ~/.ssh/id_rsa")
 	}
 
+	idEd, err := homedir.Expand("~/.ssh/id_ed25519")
+	if err != nil {
+		log.WithFields(log.Fields{
+			"err": err,
+		}).Panic("Cannot expand ~/.ssh/id_ed25519")
+	}
+
 	return []Trigger{
 		{
 			Partial:   true,
 			Parameter: "id_rsa",
 			Regex:     fmt.Sprintf(`^Enter passphrase for (key ')?%s`, idRsa),
+			Action:    "PasswordTrigger",
+		},
+		{
+			Partial:   true,
+			Parameter: "id_ed25519",
+			Regex:     fmt.Sprintf(`^Enter passphrase for (key ')?%s`, idEd),
 			Action:    "PasswordTrigger",
 		},
 		{
@@ -78,7 +91,6 @@ func apk(name string) string {
 }
 
 func apt(name string) string {
-
 	commands := []string{
 		fmt.Sprintf("(apt-get update && apt-get --yes --no-install-recommends install %s)", name),
 		yum(name),
