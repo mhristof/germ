@@ -48,7 +48,7 @@ func TestUpdateConfig(t *testing.T) {
 			profile: "existingProfile",
 			config: []byte(heredoc.Doc(`
 				[profile existingProfile]
-				foo = bar
+				sso_role_name  = existingRole
 
 				[profile test-role]
 				this = that
@@ -62,7 +62,7 @@ func TestUpdateConfig(t *testing.T) {
 			},
 			expectedConfig: []byte(heredoc.Doc(`
 				[profile existingProfile]
-				foo = bar
+				sso_role_name  = existingRole
 
 				[profile test-role]
 				this           = that
