@@ -46,8 +46,9 @@ type Color struct {
 }
 
 type KeyboardMap struct {
-	Action int64  `json:"Action"`
-	Text   string `json:"Text"`
+	Action  int64  `json:"Action"`
+	Text    string `json:"Text"`
+	Version int64  `json:"Version",omitempty`
 }
 
 type Trigger struct {
@@ -123,7 +124,7 @@ func NewProfile(name string, config map[string]string) *Profile {
 		AllowTitleSetting:   false,
 		FlashingBell:        true,
 		SilenceBell:         true,
-		KeyboardMap:         CreateKeyboardMap(config),
+		KeyboardMap:         CreateKeyboardMap(name, config),
 		UnlimitedScrollback: true,
 	}
 
@@ -336,7 +337,7 @@ func loadUserSSR(path string) []SmartSelectionRule {
 	return userSSRs
 }
 
-func CreateKeyboardMap(config map[string]string) map[string]KeyboardMap {
+func CreateKeyboardMap(name string, config map[string]string) map[string]KeyboardMap {
 	maps := map[string]KeyboardMap{
 		"0x5f-0x120000": KeyboardMap{
 			Action: 25,
@@ -353,6 +354,15 @@ func CreateKeyboardMap(config map[string]string) map[string]KeyboardMap {
 		maps["0x61-0x80000"] = KeyboardMap{
 			Action: 28,
 			Text:   fmt.Sprintf("login-%s", v),
+		}
+	}
+
+	_, found = config["sso_account_id"]
+	if found {
+		maps["0x61-0x80000-0x0"] = KeyboardMap{
+			Version: 1,
+			Action:  12,
+			Text:    "aws sso login\n",
 		}
 	}
 

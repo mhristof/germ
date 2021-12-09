@@ -52,9 +52,15 @@ func add(p *iterm.Profiles, prefix, name string, config map[string]string) {
 	profile := iterm.NewProfile(pName, config)
 	p.Add(*profile)
 
-	if _, found := config["source_profile"]; !found {
+	_, sourceProfile := config["source_profile"]
+	_, sso := config["sso_account_id"]
+	if !sourceProfile && !sso {
 		config["Command"] = loginCmd(name, config)
 		loginProfile := iterm.NewProfile(fmt.Sprintf("login-%s", name), config)
+		log.WithFields(log.Fields{
+			"profile.GUID":      profile.GUID,
+			"loginProfile.GUID": loginProfile.GUID,
+		}).Debug("created login profile")
 		p.Add(*loginProfile)
 	}
 }
@@ -62,10 +68,14 @@ func add(p *iterm.Profiles, prefix, name string, config map[string]string) {
 func loginCmd(name string, config map[string]string) string {
 	var tool, toolCmd string
 	_, azure := config["azure_tenant_id"]
+	_, ssoAccountId := config["sso_account_id"]
 
 	if azure {
 		tool = "aws-azure-login"
 		toolCmd = fmt.Sprintf("%s --no-prompt", tool)
+	} else if ssoAccountId {
+		tool = "aws"
+		toolCmd = "aws sso login"
 	} else {
 		return ""
 	}
@@ -73,8 +83,9 @@ func loginCmd(name string, config map[string]string) string {
 	bin, err := exec.LookPath(tool)
 	if err != nil {
 		log.WithFields(log.Fields{
-			"tool": tool,
-			"err":  err,
+			"tool":    tool,
+			"err":     err,
+			"profile": name,
 		}).Fatal("Cannot find executable")
 	}
 
