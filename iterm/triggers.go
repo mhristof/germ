@@ -41,12 +41,6 @@ func Triggers() []Trigger {
 			Action:    "PasswordTrigger",
 		},
 		{
-			Action:    "PasswordTrigger",
-			Parameter: "macos",
-			Regex:     "^Password: .input is hidden.",
-			Partial:   true,
-		},
-		{
 			Action:    "SendTextTrigger",
 			Parameter: apt("openssh-client"),
 			Regex:     notFound("ssh-add"),
