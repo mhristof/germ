@@ -362,7 +362,7 @@ func CreateKeyboardMap(name string, config map[string]string) map[string]Keyboar
 		maps["0x61-0x80000-0x0"] = KeyboardMap{
 			Version: 1,
 			Action:  12,
-			Text:    "aws sso login\n",
+			Text:    "aws sso login",
 		}
 	}
 
