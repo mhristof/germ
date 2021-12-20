@@ -35,6 +35,7 @@ type Profile struct {
 	Triggers            []Trigger              `json:"Triggers"`
 	UnlimitedScrollback bool                   `json:"Unlimited Scrollback"`
 	BackgroundColor     Color                  `json:"Background Color"`
+	BoundHosts          []string               `json:"Bound Hosts,omitempty"`
 }
 
 type Color struct {
