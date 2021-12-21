@@ -5,12 +5,16 @@ import (
 	"fmt"
 	"io/ioutil"
 	"sort"
+	"strings"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/mhristof/germ/aws"
 	"github.com/mhristof/germ/iterm"
 	"github.com/mhristof/germ/k8s"
 	"github.com/mhristof/germ/log"
+	"github.com/mhristof/germ/vim"
+
+	//"github.com/mhristof/germ/vim"
 	"github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
 )
@@ -56,6 +60,7 @@ var generateCmd = &cobra.Command{
 			"AllowTitleSetting": "true",
 			"BadgeText":         "",
 		}))
+		prof.Profiles = append(prof.Profiles, vim.Profile())
 		prof.UpdateKeyboardMaps()
 		prof.UpdateAWSSmartSelectionRules()
 
@@ -65,6 +70,9 @@ var generateCmd = &cobra.Command{
 				"err": err,
 			}).Fatal("Cannot indent json results")
 		}
+
+		// unescape "&" character.
+		profJSON = []byte(strings.ReplaceAll(string(profJSON), `\u0026`, "&"))
 
 		if write {
 			err = ioutil.WriteFile(output, profJSON, 0644)
