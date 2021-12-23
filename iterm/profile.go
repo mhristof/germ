@@ -32,7 +32,7 @@ type Profile struct {
 	SmartSelectionRules []SmartSelectionRule   `json:"Smart Selection Rules"`
 	Tags                []string               `json:"Tags"`
 	TitleComponents     int64                  `json:"Title Components"`
-	Triggers            []Trigger              `json:"Triggers,omitempty"`
+	Triggers            []Trigger              `json:"Triggers"`
 	UnlimitedScrollback bool                   `json:"Unlimited Scrollback"`
 	BackgroundColor     Color                  `json:"Background Color"`
 	BoundHosts          []string               `json:"Bound Hosts,omitempty"`
