@@ -8,6 +8,7 @@ func Profile() iterm.Profile {
 	p.Triggers = []iterm.Trigger{}
 	p.BoundHosts = []string{
 		"&vim",
+		"&nvim",
 	}
 
 	return *p
