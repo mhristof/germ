@@ -36,6 +36,7 @@ type Profile struct {
 	UnlimitedScrollback bool                   `json:"Unlimited Scrollback"`
 	BackgroundColor     Color                  `json:"Background Color"`
 	BoundHosts          []string               `json:"Bound Hosts,omitempty"`
+	NormalFont          string                 `json:"Normal Font"`
 }
 
 type Color struct {
@@ -127,6 +128,7 @@ func NewProfile(name string, config map[string]string) *Profile {
 		SilenceBell:         true,
 		KeyboardMap:         CreateKeyboardMap(name, config),
 		UnlimitedScrollback: true,
+		NormalFont:          "Monaco 12",
 	}
 
 	v, found := config["Command"]
