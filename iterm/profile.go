@@ -26,7 +26,7 @@ type Profile struct {
 	CustomWindowTitle   string                 `json:"Custom Window Title"`
 	FlashingBell        bool                   `json:"Flashing Bell"`
 	GUID                string                 `json:"Guid"`
-	KeyboardMap         map[string]KeyboardMap `json:"Keyboard Map"`
+	KeyboardMap         map[string]KeyboardMap `json:"Keyboard Map,omitempty"`
 	Name                string                 `json:"Name"`
 	SilenceBell         bool                   `json:"Silence Bell"`
 	SmartSelectionRules []SmartSelectionRule   `json:"Smart Selection Rules"`

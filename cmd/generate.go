@@ -12,6 +12,7 @@ import (
 	"github.com/mhristof/germ/iterm"
 	"github.com/mhristof/germ/k8s"
 	"github.com/mhristof/germ/log"
+	"github.com/mhristof/germ/vault"
 	"github.com/mhristof/germ/vim"
 
 	//"github.com/mhristof/germ/vim"
@@ -61,6 +62,16 @@ var generateCmd = &cobra.Command{
 			"BadgeText":         "",
 		}))
 		prof.Profiles = append(prof.Profiles, vim.Profile())
+
+		vaultProfile, err := vault.Profile()
+		if err != nil {
+			log.WithFields(log.Fields{
+				"err": err,
+			}).Warning("cannot add vault profile")
+		} else {
+			prof.Profiles = append(prof.Profiles, vaultProfile)
+		}
+
 		prof.UpdateKeyboardMaps()
 		prof.UpdateAWSSmartSelectionRules()
 
@@ -73,6 +84,8 @@ var generateCmd = &cobra.Command{
 
 		// unescape "&" character.
 		profJSON = []byte(strings.ReplaceAll(string(profJSON), `\u0026`, "&"))
+		// unescape ">" character.
+		profJSON = []byte(strings.ReplaceAll(string(profJSON), `\u003e`, ">"))
 
 		if write {
 			err = ioutil.WriteFile(output, profJSON, 0644)
