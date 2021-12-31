@@ -31,7 +31,13 @@ func Profile() (iterm.Profile, error) {
 		"&vault",
 	}
 
-	p.KeyboardMap = map[string]iterm.KeyboardMap{}
+	p.KeyboardMap = map[string]iterm.KeyboardMap{
+		"0x77-0x100000-0xd": {
+			Version: 1,
+			Action:  12,
+			Text:    "Cmd+w is disabled, please ctrl+c to exit\n",
+		},
+	}
 
 	return *p, nil
 }
