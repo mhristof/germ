@@ -12,6 +12,7 @@ import (
 	"github.com/mhristof/germ/iterm"
 	"github.com/mhristof/germ/k8s"
 	"github.com/mhristof/germ/log"
+	"github.com/mhristof/germ/ssh"
 	"github.com/mhristof/germ/vault"
 	"github.com/mhristof/germ/vim"
 
@@ -62,6 +63,7 @@ var generateCmd = &cobra.Command{
 			"BadgeText":         "",
 		}))
 		prof.Profiles = append(prof.Profiles, vim.Profile())
+		prof.Profiles = append(prof.Profiles, ssh.Profiles()...)
 
 		vaultProfile, err := vault.Profile()
 		if err != nil {
