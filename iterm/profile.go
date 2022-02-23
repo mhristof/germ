@@ -301,6 +301,54 @@ func SmartSelectionRules(custom string) []SmartSelectionRule {
 				},
 			},
 		},
+		{
+			Notes:     "aws ec2 descripbe-images",
+			Precision: "normal",
+			Regex:     "(ami-[0-9a-f]*)",
+			Actions: []SmartSelectionRuleAction{
+				{
+					Title:     "aws ec2 describe-images",
+					Action:    4,
+					Parameter: " aws ec2 describe-images --image-ids \\1\n",
+				},
+			},
+		},
+		{
+			Notes:     "aws ec2 descripbe-instances",
+			Precision: "normal",
+			Regex:     "(i-[0-9a-f]*)",
+			Actions: []SmartSelectionRuleAction{
+				{
+					Title:     "aws ec2 describe-instances",
+					Action:    4,
+					Parameter: " aws ec2 describe-instances --instance-ids \\1\n",
+				},
+			},
+		},
+		{
+			Notes:     "aws ec2 descripbe-vpcs",
+			Precision: "normal",
+			Regex:     "(vpc-[0-9a-f]*)",
+			Actions: []SmartSelectionRuleAction{
+				{
+					Title:     "aws ec2 describe-vpcs",
+					Action:    4,
+					Parameter: " aws ec2 describe-vpcs --vpc-ids \\1\n",
+				},
+			},
+		},
+		{
+			Notes:     "aws ec2 describe-security-groups",
+			Precision: "normal",
+			Regex:     "(sg-[0-9a-f]*)",
+			Actions: []SmartSelectionRuleAction{
+				{
+					Title:     "aws ec2 describe-security-groups",
+					Action:    4,
+					Parameter: "jq --slurp '.[0] + .[1]' <(aws ec2 describe-security-group-rules --filter Name=group-id,Values=\\1) <(aws ec2 describe-security-groups --group-ids \\1)\n",
+				},
+			},
+		},
 	}
 
 	return append(ssr, loadUserSSR(custom)...)
