@@ -18,25 +18,27 @@ type Profiles struct {
 }
 
 type Profile struct {
-	AllowTitleSetting   bool                   `json:"Allow Title Setting"`
-	BadgeText           string                 `json:"Badge Text"`
-	Command             string                 `json:"Command"`
-	CustomCommand       string                 `json:"Custom Command"`
-	CustomDirectory     string                 `json:"Custom Directory"`
-	CustomWindowTitle   string                 `json:"Custom Window Title"`
-	FlashingBell        bool                   `json:"Flashing Bell"`
-	GUID                string                 `json:"Guid"`
-	KeyboardMap         map[string]KeyboardMap `json:"Keyboard Map,omitempty"`
-	Name                string                 `json:"Name"`
-	SilenceBell         bool                   `json:"Silence Bell"`
-	SmartSelectionRules []SmartSelectionRule   `json:"Smart Selection Rules"`
-	Tags                []string               `json:"Tags"`
-	TitleComponents     int64                  `json:"Title Components"`
-	Triggers            []Trigger              `json:"Triggers"`
-	UnlimitedScrollback bool                   `json:"Unlimited Scrollback"`
-	BackgroundColor     Color                  `json:"Background Color"`
-	BoundHosts          []string               `json:"Bound Hosts,omitempty"`
-	NormalFont          string                 `json:"Normal Font"`
+	AllowTitleSetting      bool                   `json:"Allow Title Setting"`
+	BadgeText              string                 `json:"Badge Text"`
+	Command                string                 `json:"Command"`
+	CustomCommand          string                 `json:"Custom Command"`
+	CustomDirectory        string                 `json:"Custom Directory"`
+	CustomWindowTitle      string                 `json:"Custom Window Title"`
+	FlashingBell           bool                   `json:"Flashing Bell"`
+	GUID                   string                 `json:"Guid"`
+	KeyboardMap            map[string]KeyboardMap `json:"Keyboard Map,omitempty"`
+	Name                   string                 `json:"Name"`
+	SilenceBell            bool                   `json:"Silence Bell"`
+	SmartSelectionRules    []SmartSelectionRule   `json:"Smart Selection Rules"`
+	Tags                   []string               `json:"Tags"`
+	TitleComponents        int64                  `json:"Title Components"`
+	Triggers               []Trigger              `json:"Triggers"`
+	UnlimitedScrollback    bool                   `json:"Unlimited Scrollback"`
+	BackgroundColor        Color                  `json:"Background Color"`
+	BoundHosts             []string               `json:"Bound Hosts,omitempty"`
+	NormalFont             string                 `json:"Normal Font"`
+	Transparency           int                    `json:"Transparency"`
+	InitialUseTransparency bool                   `json:"Initial Use Transparency"`
 }
 
 type Color struct {
@@ -114,21 +116,23 @@ func (p *Profiles) FindGUID(guid string) (Profile, bool) {
 
 func NewProfile(name string, config map[string]string) *Profile {
 	prof := Profile{
-		Name:                name,
-		GUID:                name,
-		Tags:                Tags(config),
-		CustomDirectory:     "Recycle",
-		SmartSelectionRules: SmartSelectionRules("~/.germ.ssr.json"),
-		Triggers:            Triggers(),
-		BadgeText:           name,
-		TitleComponents:     32,
-		CustomWindowTitle:   name,
-		AllowTitleSetting:   false,
-		FlashingBell:        true,
-		SilenceBell:         true,
-		KeyboardMap:         CreateKeyboardMap(name, config),
-		UnlimitedScrollback: true,
-		NormalFont:          "Monaco 12",
+		Name:                   name,
+		GUID:                   name,
+		Tags:                   Tags(config),
+		CustomDirectory:        "Recycle",
+		SmartSelectionRules:    SmartSelectionRules("~/.germ.ssr.json"),
+		Triggers:               Triggers(),
+		BadgeText:              name,
+		TitleComponents:        32,
+		CustomWindowTitle:      name,
+		AllowTitleSetting:      false,
+		FlashingBell:           true,
+		SilenceBell:            true,
+		KeyboardMap:            CreateKeyboardMap(name, config),
+		UnlimitedScrollback:    true,
+		NormalFont:             "Monaco 12",
+		Transparency:           0,
+		InitialUseTransparency: false,
 	}
 
 	v, found := config["Command"]
