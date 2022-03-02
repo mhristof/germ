@@ -306,6 +306,18 @@ func SmartSelectionRules(custom string) []SmartSelectionRule {
 			},
 		},
 		{
+			Notes:     "git add",
+			Precision: "normal",
+			Regex:     "^\\s*both modified:\\s*(.*)",
+			Actions: []SmartSelectionRuleAction{
+				{
+					Title:     "git add",
+					Action:    4,
+					Parameter: "git add \\1;",
+				},
+			},
+		},
+		{
 			Notes:     "aws ec2 descripbe-images",
 			Precision: "normal",
 			Regex:     "(ami-[0-9a-f]*)",
