@@ -1,7 +1,9 @@
 package iterm
 
 import (
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"strings"
 
 	"github.com/mhristof/germ/log"
@@ -12,7 +14,28 @@ func notFound(name string) string {
 	return fmt.Sprintf("^(bash|/bin/sh): %s: (command )?not found", name)
 }
 
-func Triggers() []Trigger {
+func profileTriggers(profile string) []Trigger {
+	file, err := homedir.Expand(fmt.Sprintf("~/.germ.trigger.%s.json", profile))
+	if err != nil {
+		return []Trigger{}
+	}
+
+	data, err := ioutil.ReadFile(file)
+	if err != nil {
+		return []Trigger{}
+	}
+
+	var ret []Trigger
+
+	err = json.Unmarshal(data, &ret)
+	if err != nil {
+		panic(err)
+	}
+
+	return ret
+}
+
+func Triggers(profile string) []Trigger {
 	idRsa, err := homedir.Expand("~/.ssh/id_rsa")
 	if err != nil {
 		log.WithFields(log.Fields{

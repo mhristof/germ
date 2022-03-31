@@ -9,6 +9,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/mhristof/germ/aws"
+	"github.com/mhristof/germ/config"
 	"github.com/mhristof/germ/iterm"
 	"github.com/mhristof/germ/k8s"
 	"github.com/mhristof/germ/log"
@@ -64,6 +65,9 @@ var generateCmd = &cobra.Command{
 		}))
 		prof.Profiles = append(prof.Profiles, vim.Profile())
 		prof.Profiles = append(prof.Profiles, ssh.Profiles()...)
+
+		config.Load()
+		prof.Profiles = append(prof.Profiles, config.Generate()...)
 
 		vaultProfile, err := vault.Profile()
 		if err != nil {
