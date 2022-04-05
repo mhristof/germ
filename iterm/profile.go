@@ -246,6 +246,18 @@ func Tags(c map[string]string) []string {
 func SmartSelectionRules(custom string) []SmartSelectionRule {
 	ssr := []SmartSelectionRule{
 		{
+			Notes:     "gitlab terraform source",
+			Precision: "normal",
+			Regex:     `git@gitlab.com:(.*)\.git//(.*)\?`,
+			Actions: []SmartSelectionRuleAction{
+				SmartSelectionRuleAction{
+					Title:     "open webpage",
+					Action:    1,
+					Parameter: `https://gitlab.com/\1/-/tree/master/\2`,
+				},
+			},
+		},
+		{
 			Notes:     "shellcheck code",
 			Precision: "normal",
 			Regex:     `(SC\d*)`,
