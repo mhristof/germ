@@ -22,7 +22,7 @@ require (
 	github.com/zieckey/goini v0.0.0-20180118150432-0da17d361d26
 	golang.org/x/crypto v0.0.0-20210817164053-32db794688a5
 	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
-	gopkg.in/ini.v1 v1.66.2
+	gopkg.in/ini.v1 v1.66.4
 	gopkg.in/yaml.v2 v2.4.0
 	gotest.tools v2.2.0+incompatible
 )
