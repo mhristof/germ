@@ -8,7 +8,7 @@ require (
 	github.com/aws/aws-sdk-go v1.44.12
 	github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869 // indirect
 	github.com/google/go-cmp v0.5.7
-	github.com/kevinburke/ssh_config v1.1.0
+	github.com/kevinburke/ssh_config v1.2.0
 	github.com/keybase/go-keychain v0.0.0-20201121013009-976c83ec27a6
 	github.com/kr/text v0.2.0 // indirect
 	github.com/mhristof/go-update v0.1.1
