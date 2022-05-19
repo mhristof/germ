@@ -5,7 +5,7 @@ go 1.16
 require (
 	github.com/MakeNowJust/heredoc v1.0.0
 	github.com/adrg/xdg v0.4.0
-	github.com/aws/aws-sdk-go v1.44.16
+	github.com/aws/aws-sdk-go v1.44.18
 	github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869 // indirect
 	github.com/google/go-cmp v0.5.8
 	github.com/kevinburke/ssh_config v1.2.0
