@@ -1,18 +1,24 @@
 package k8s
 
 import (
+	"bytes"
+	"context"
 	"fmt"
 	"io/ioutil"
+	"os/exec"
 	"os/user"
 	"path/filepath"
+	"strings"
 
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/eks"
 	"github.com/mhristof/germ/iterm"
 	"github.com/mhristof/germ/log"
 	"gopkg.in/yaml.v2"
 )
 
 func (k *KubeConfig) GetCluster(name string) (*KubeConfig, bool) {
-	var config = KubeConfig{
+	config := KubeConfig{
 		APIVersion:     k.APIVersion,
 		Kind:           k.Kind,
 		Preferences:    k.Preferences,
@@ -52,6 +58,58 @@ func Profiles(config string, dry bool) []iterm.Profile {
 	return clusters.Profiles(filepath.Dir(config), dry)
 }
 
+func GenerateK8sFromAWS(profile string) {
+	if profile == "" {
+		return
+	}
+
+	cfg, err := config.LoadDefaultConfig(
+		context.TODO(),
+		config.WithSharedConfigProfile(profile),
+	)
+	if err != nil {
+		log.WithFields(log.Fields{
+			"err":     err,
+			"profile": profile,
+		}).Warning("cannot create aws config")
+
+		return
+	}
+
+	client := eks.NewFromConfig(cfg)
+
+	clusters, err := client.ListClusters(context.TODO(), &eks.ListClustersInput{})
+	if err != nil {
+		log.WithFields(log.Fields{
+			"err":     err,
+			"profile": profile,
+		}).Warning("cannot list clusters")
+
+		return
+	}
+
+	for _, cluster := range clusters.Clusters {
+		command := fmt.Sprintf("aws eks update-kubeconfig --name %s", cluster)
+		cmd := exec.Command("bash", "-c", command)
+		var stdout, stderr bytes.Buffer
+		cmd.Stdout = &stdout
+		cmd.Stderr = &stderr
+		err := cmd.Run()
+		outStr, errStr := stdout.String(), stderr.String()
+		if err != nil {
+			log.WithFields(log.Fields{
+				"err":     err,
+				"command": command,
+				"cluster": cluster,
+				"outStr":  outStr,
+				"errStr":  errStr,
+			}).Warning("cannot retrieve kubeconfig for eks cluster")
+
+			continue
+		}
+	}
+}
+
 func (k *KubeConfig) Profiles(dest string, dry bool) []iterm.Profile {
 	var ret []iterm.Profile
 
@@ -63,7 +121,7 @@ func (k *KubeConfig) Profiles(dest string, dry bool) []iterm.Profile {
 			}).Fatal("Cluster not found")
 		}
 
-		var path = fmt.Sprintf("dry/run/path/%s", this.name())
+		path := fmt.Sprintf("dry/run/path/%s", this.name())
 		if !dry {
 			path = this.Print(dest)
 		}
@@ -91,12 +149,12 @@ func (k *KubeConfig) Profile(path string) *iterm.Profile {
 		}).Fatal("Cannot handle multiple cluster definitions")
 	}
 
-	var tags = map[string]string{
+	tags := map[string]string{
 		"Tags": "k8s",
 	}
 	cmd := fmt.Sprintf("/usr/bin/env KUBECONFIG=%s", path)
 
-	name := k.Clusters[0].Name
+	name := filepath.Base(k.Clusters[0].Name)
 	awsProfile := k.AWSProfile()
 	if awsProfile != "" {
 		cmd = fmt.Sprintf("%s AWS_PROFILE=%s", cmd, awsProfile)
@@ -163,7 +221,11 @@ func (k *KubeConfig) Print(dest string) string {
 	}
 
 	bytes, err := yaml.Marshal(k)
-	destFile := fmt.Sprintf("%s/%s.yml", dest, k.Clusters[0].Name)
+	destFile := fmt.Sprintf("%s/%s.yml", dest,
+		strings.ReplaceAll(
+			strings.ReplaceAll(k.Clusters[0].Name, "/", "-"),
+			":", "-"),
+	)
 	err = ioutil.WriteFile(destFile, bytes, 0644)
 	if err != nil {
 		log.WithFields(log.Fields{
@@ -194,5 +256,4 @@ func (k *KubeConfig) SplitFiles(dest string) {
 			}).Fatal("Cannot write to file")
 		}
 	}
-
 }
