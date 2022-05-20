@@ -12,7 +12,7 @@ import (
 	"github.com/kevinburke/ssh_config"
 
 	"github.com/mhristof/germ/iterm"
-	"github.com/mhristof/germ/log"
+	"github.com/rs/zerolog/log"
 )
 
 func containsPattern(patterns []*ssh_config.Pattern, needle string) bool {
@@ -29,10 +29,7 @@ func Profiles() []iterm.Profile {
 	config := filepath.Join(os.Getenv("HOME"), ".ssh/config")
 	data, err := ioutil.ReadFile(config)
 	if err != nil {
-		log.WithFields(log.Fields{
-			"err":    err,
-			"config": config,
-		}).Error("cannot open ssh config")
+		log.Error().Str("config", config).Err(err).Msg("cannot open ssh config")
 	}
 
 	var ret []iterm.Profile
@@ -49,9 +46,7 @@ func Profiles() []iterm.Profile {
 		fields := strings.Fields(line)
 
 		if len(fields) != 2 {
-			log.WithFields(log.Fields{
-				"fields": fields,
-			}).Debug("more fields than expected")
+			log.Debug().Interface("fields", fields).Msg("more fields than expected")
 
 			continue
 		}
@@ -82,12 +77,10 @@ func hostIP(config, host string) string {
 
 	err := cmd.Run()
 	if err != nil {
-		log.WithFields(log.Fields{
-			"err":             err,
-			"host":            host,
-			"config":          config,
-			"stderr.String()": stderr.String(),
-		}).Warning("cannot find IP for host")
+		log.Warn().Str("host", host).
+			Str("config", config).
+			Str("stderr.String()", stderr.String()).
+			Msg("cannot find IP for host")
 
 		return ""
 	}

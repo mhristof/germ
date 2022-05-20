@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/mhristof/germ/iterm"
-	"github.com/mhristof/germ/log"
+	"github.com/rs/zerolog/log"
 	"github.com/zieckey/goini"
 )
 
@@ -17,10 +17,7 @@ func Profiles(prefix, config string) []iterm.Profile {
 	ini := goini.New()
 	err := ini.ParseFile(config)
 	if err != nil {
-		log.WithFields(log.Fields{
-			"config": config,
-			"err":    err.Error(),
-		}).Warning("paarseINI file failed.")
+		log.Warn().Err(err).Str("config", config).Msg("parse INI failed")
 		return nil
 	}
 
@@ -39,9 +36,7 @@ func Profiles(prefix, config string) []iterm.Profile {
 func add(p *iterm.Profiles, prefix, name string, config map[string]string) {
 	user, err := user.Current()
 	if err != nil {
-		log.WithFields(log.Fields{
-			"err": err,
-		}).Fatal("Cannot find current user")
+		log.Fatal().Err(err).Msg("cannot find current user")
 	}
 
 	config["Command"] = fmt.Sprintf("/usr/bin/env AWS_PROFILE=%s /usr/bin/login -fp %s", name, user.Username)
@@ -57,10 +52,12 @@ func add(p *iterm.Profiles, prefix, name string, config map[string]string) {
 	if !sourceProfile && !sso {
 		config["Command"] = loginCmd(name, config)
 		loginProfile := iterm.NewProfile(fmt.Sprintf("login-%s", name), config)
-		log.WithFields(log.Fields{
-			"profile.GUID":      profile.GUID,
-			"loginProfile.GUID": loginProfile.GUID,
-		}).Debug("created login profile")
+
+		log.Debug().
+			Str("profile.GUID", profile.GUID).
+			Str("loginProfile.GUID", loginProfile.GUID).
+			Msg("create login profile")
+
 		p.Add(*loginProfile)
 	}
 }
@@ -82,11 +79,9 @@ func loginCmd(name string, config map[string]string) string {
 
 	bin, err := exec.LookPath(tool)
 	if err != nil {
-		log.WithFields(log.Fields{
-			"tool":    tool,
-			"err":     err,
-			"profile": name,
-		}).Fatal("Cannot find executable")
+		log.Fatal().Err(err).
+			Str("tool", tool).
+			Msg("cannot find executable")
 	}
 
 	return fmt.Sprintf(

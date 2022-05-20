@@ -6,8 +6,8 @@ import (
 	"io/ioutil"
 	"strings"
 
-	"github.com/mhristof/germ/log"
 	"github.com/mitchellh/go-homedir"
+	"github.com/rs/zerolog/log"
 )
 
 func notFound(name string) string {
@@ -38,16 +38,12 @@ func profileTriggers(profile string) []Trigger {
 func Triggers(profile string) []Trigger {
 	idRsa, err := homedir.Expand("~/.ssh/id_rsa")
 	if err != nil {
-		log.WithFields(log.Fields{
-			"err": err,
-		}).Panic("Cannot expand ~/.ssh/id_rsa")
+		log.Panic().Err(err).Msg("cannot expand ~/")
 	}
 
 	idEd, err := homedir.Expand("~/.ssh/id_ed25519")
 	if err != nil {
-		log.WithFields(log.Fields{
-			"err": err,
-		}).Panic("Cannot expand ~/.ssh/id_ed25519")
+		log.Panic().Err(err).Msg("cannot expand ~/")
 	}
 
 	return []Trigger{

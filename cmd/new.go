@@ -8,8 +8,8 @@ import (
 	"syscall"
 
 	"github.com/mhristof/germ/keychain"
-	"github.com/mhristof/germ/log"
 	"github.com/pkg/errors"
+	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"golang.org/x/crypto/ssh/terminal"
 	"gopkg.in/ini.v1"
@@ -45,9 +45,7 @@ func findPassword(file string) string {
 	fmt.Print("Enter secret:")
 	bytePassword, err := terminal.ReadPassword(int(syscall.Stdin))
 	if err != nil {
-		log.WithFields(log.Fields{
-			"err": err,
-		}).Fatal("Cannot read secret")
+		log.Fatal().Err(err).Msg("cannot read secret")
 	}
 
 	if exported {
@@ -122,31 +120,20 @@ func handleFile(file string) string {
 		}
 	}
 
-	log.WithFields(log.Fields{
-		"file": file,
-	}).Fatal("Cannot handle this creds file")
+	log.Fatal().Str("file", file).Msg("cannot handle this type of file")
 	return ""
 }
 
 func slurpCsv(file string) [][]string {
-
 	in, err := ioutil.ReadFile(file)
 	if err != nil {
-		log.WithFields(log.Fields{
-			"err":  err,
-			"file": file,
-		}).Fatal("Cannot read file")
-
+		log.Fatal().Err(err).Msg("cannot read file")
 	}
 	r := csv.NewReader(strings.NewReader(string(in)))
 
 	records, err := r.ReadAll()
 	if err != nil {
-		log.WithFields(log.Fields{
-			"err":  err,
-			"file": file,
-		}).Fatal("Cannot read CSV file")
-
+		log.Fatal().Err(err).Msg("cannot read csv file")
 	}
 
 	return records

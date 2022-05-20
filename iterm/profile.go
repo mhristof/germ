@@ -9,8 +9,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/mhristof/germ/log"
 	"github.com/mitchellh/go-homedir"
+	"github.com/rs/zerolog/log"
 )
 
 type Profiles struct {
@@ -186,10 +186,7 @@ func NewProfile(name string, config map[string]string) *Profile {
 	if found {
 		value, err := strconv.ParseBool(v)
 		if err != nil {
-			log.WithFields(log.Fields{
-				"v":    v,
-				"name": name,
-			}).Fatal("Value is not convertable to bool")
+			log.Fatal().Interface("v", v).Msg("cvalue is not convertable to bool")
 		}
 
 		prof.AllowTitleSetting = value
@@ -426,9 +423,7 @@ func SmartSelectionRules(custom string) []SmartSelectionRule {
 func loadUserSSR(path string) []SmartSelectionRule {
 	userSsr, err := homedir.Expand(path)
 	if err != nil {
-		log.WithFields(log.Fields{
-			"err": err,
-		}).Fatal("Cannot expand path")
+		log.Fatal().Err(err).Msg("cannot expand path")
 	}
 
 	if _, err := os.Stat(userSsr); os.IsNotExist(err) {
@@ -437,21 +432,17 @@ func loadUserSSR(path string) []SmartSelectionRule {
 
 	bytes, err := ioutil.ReadFile(userSsr)
 	if err != nil {
-		log.WithFields(log.Fields{
-			"userSsr": userSsr,
-			"err":     err,
-		}).Fatal("Cannot read file")
+		log.Fatal().Err(err).Str("userSsr", userSsr).Msg("cannot read file")
 	}
 
 	var userSSRs []SmartSelectionRule
 
 	err = json.Unmarshal(bytes, &userSSRs)
 	if err != nil {
-		log.WithFields(log.Fields{
-			"string(bytes)": string(bytes),
-			"userSsr":       userSsr,
-			"err":           err,
-		}).Fatal("Cannot parse json file")
+		log.Fatal().Err(err).
+			Str("userSsr", userSsr).
+			Str("string(bytes)", string(bytes)).
+			Msg("cannot parse json file")
 	}
 
 	return userSSRs
@@ -542,10 +533,9 @@ func (p *Profiles) UpdateKeyboardMaps() {
 		sourceProfile, found := p.FindGUID(awsProfile)
 
 		if !found {
-			log.WithFields(log.Fields{
-				"awsProfile": awsProfile,
-				"k8s":        profile.GUID,
-			}).Error("AWS Profile not found")
+			log.Error().Str("awsProfile", awsProfile).
+				Str("k8s", profile.GUID).
+				Msg("AWS profile not found")
 		}
 
 		key := "0x61-0x80000"

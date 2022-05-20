@@ -9,7 +9,7 @@ import (
 	"text/template"
 
 	"github.com/MakeNowJust/heredoc"
-	"github.com/mhristof/germ/log"
+	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 )
 
@@ -36,14 +36,9 @@ var defaultCmd = &cobra.Command{
 	Aliases: []string{"def"},
 	Short:   "Set the default profile in iterm",
 	Run: func(cmd *cobra.Command, args []string) {
-		Verbose(cmd)
-
 		tmpl, err := template.New("script").Parse(defaultProfilePython)
 		if err != nil {
-			log.WithFields(log.Fields{
-				"err": err,
-			}).Fatal("Could not create template")
-
+			log.Fatal().Err(err).Msg("cannot create template")
 		}
 
 		rendered := new(bytes.Buffer)
@@ -53,48 +48,32 @@ var defaultCmd = &cobra.Command{
 			Profile: defaultProfileName,
 		})
 		if err != nil {
-			log.WithFields(log.Fields{
-				"err": err,
-			}).Fatal("Could not render template")
-
+			log.Fatal().Err(err).Msg("cannot render template")
 		}
 
 		tmpfile, err := ioutil.TempFile("", "default-profile")
 		if err != nil {
-			log.WithFields(log.Fields{
-				"err": err,
-			}).Fatal("Could not create temp file")
-
+			log.Fatal().Err(err).Msg("cannot create temp file")
 		}
 		defer os.Remove(tmpfile.Name())
 
 		fmt.Println(tmpfile.Name())
 		if _, err := tmpfile.Write(rendered.Bytes()); err != nil {
-			log.WithFields(log.Fields{
-				"err": err,
-			}).Fatal("Could not write to file")
-
+			log.Fatal().Err(err).Msg("cannot write file")
 		}
 		if err := tmpfile.Close(); err != nil {
-			log.WithFields(log.Fields{
-				"err": err,
-			}).Fatal("Could not close file")
+			log.Fatal().Err(err).Msg("cannot close file")
 		}
 
 		python3, err := exec.LookPath("python3")
 		if err != nil {
-			log.WithFields(log.Fields{
-				"err": err,
-			}).Fatal("Could not find python3")
-
+			log.Fatal().Err(err).Msg("cannot find python3")
 		}
 
 		pCmd := exec.Command(python3, tmpfile.Name())
 		err = pCmd.Run()
 		if err != nil {
-			log.WithFields(log.Fields{
-				"err": err,
-			}).Fatal("Could not set default profile")
+			log.Fatal().Err(err).Msg("cannot set default profile")
 		}
 	},
 }

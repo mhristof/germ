@@ -10,6 +10,7 @@ import (
 	"github.com/MakeNowJust/heredoc"
 	"github.com/mhristof/germ/aws"
 	"github.com/mhristof/germ/iterm"
+	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 )
 
@@ -25,9 +26,7 @@ var cmdCmd = &cobra.Command{
 		`,
 	),
 	Run: func(cmd *cobra.Command, args []string) {
-		Verbose(cmd)
-
-		var prof = iterm.Profiles{
+		prof := iterm.Profiles{
 			Profiles: aws.Profiles("prefix", AWSConfig),
 		}
 
@@ -45,7 +44,7 @@ func generateCommands(prof iterm.Profiles, command string) []string {
 				loginGUID := fmt.Sprintf("login-%s", source)
 				iProfile, found := prof.FindGUID(loginGUID)
 				if !found {
-					panic(loginGUID)
+					log.Panic().Msg(loginGUID)
 				}
 
 				ret = append(ret, strings.Replace(iProfile.Command, " || sleep 60'", "'", -1))

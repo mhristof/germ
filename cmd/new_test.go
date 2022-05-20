@@ -2,18 +2,16 @@ package cmd
 
 import (
 	"io/ioutil"
-
 	"os"
 	"path/filepath"
 	"testing"
 
 	"github.com/MakeNowJust/heredoc"
-	"github.com/mhristof/germ/log"
 	"gotest.tools/assert"
 )
 
 func TestHandleFile(t *testing.T) {
-	var cases = []struct {
+	cases := []struct {
 		name     string
 		fileName string
 		contents string
@@ -49,26 +47,22 @@ func TestHandleFile(t *testing.T) {
 	}
 
 	for _, test := range cases {
-		file, cleanup := tempFile(test.contents, test.fileName)
+		file, cleanup := tempFile(t, test.contents, test.fileName)
 		defer cleanup()
 
 		assert.Equal(t, test.exp, handleFile(file), test.name)
 	}
 }
 
-func tempFile(contents, name string) (string, func()) {
+func tempFile(t *testing.T, contents, name string) (string, func()) {
 	dir, err := ioutil.TempDir("", "example")
 	if err != nil {
-		log.WithFields(log.Fields{
-			"err": err,
-		}).Fatal("Cannot create temp dir")
+		t.Fatal(err)
 	}
 
 	tmpfn := filepath.Join(dir, name)
 	if err := ioutil.WriteFile(tmpfn, []byte(contents), 0666); err != nil {
-		log.WithFields(log.Fields{
-			"err": err,
-		}).Fatal("Cannot write to file")
+		t.Fatal(err)
 	}
 	return tmpfn, func() {
 		os.RemoveAll(dir)

@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/MakeNowJust/heredoc"
-	"github.com/mhristof/germ/log"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -404,7 +403,7 @@ func TestSmartSelectionRules(t *testing.T) {
 	}
 
 	for _, test := range cases {
-		file, cleanup := tempFile(test.customContents)
+		file, cleanup := tempFile(t, test.customContents)
 		defer cleanup()
 
 		assert.True(t, test.exp(SmartSelectionRules(file)), test.name)
@@ -412,21 +411,15 @@ func TestSmartSelectionRules(t *testing.T) {
 	}
 }
 
-func tempFile(contents string) (string, func()) {
+func tempFile(t *testing.T, contents string) (string, func()) {
 	dir, err := ioutil.TempDir("", "example")
 	if err != nil {
-		panic(err)
-		log.WithFields(log.Fields{
-			"err": err,
-		}).Fatal("Cannot create Temp dir")
-
+		t.Fatal(err)
 	}
 
 	tmpfn := filepath.Join(dir, "tmpfile")
 	if err := ioutil.WriteFile(tmpfn, []byte(contents), 0666); err != nil {
-		log.WithFields(log.Fields{
-			"err": err,
-		}).Fatal("Cannot write to temp file")
+		t.Fatal(err)
 	}
 	return tmpfn, func() {
 		os.RemoveAll(dir)

@@ -12,12 +12,11 @@ import (
 	"github.com/mhristof/germ/config"
 	"github.com/mhristof/germ/iterm"
 	"github.com/mhristof/germ/k8s"
-	"github.com/mhristof/germ/log"
 	"github.com/mhristof/germ/ssh"
 	"github.com/mhristof/germ/vault"
 	"github.com/mhristof/germ/vim"
+	"github.com/rs/zerolog/log"
 
-	//"github.com/mhristof/germ/vim"
 	"github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
 )
@@ -40,17 +39,11 @@ var generateCmd = &cobra.Command{
 		Verbose(cmd)
 
 		if write && dryRun {
-			log.WithFields(log.Fields{
-				"write":  write,
-				"dryrun": dryRun,
-			}).Fatal("--write is incompatible with --dry-run")
+			log.Fatal().Msg("--write is incompatible with --dry-run")
 		}
 
 		if write && diff {
-			log.WithFields(log.Fields{
-				"write": write,
-				"diff":  diff,
-			}).Fatal("--write and --diff are incompatible")
+			log.Fatal().Msg("--write and --diff are incompatible")
 		}
 
 		var prof iterm.Profiles
@@ -70,9 +63,7 @@ var generateCmd = &cobra.Command{
 
 		vaultProfile, err := vault.Profile()
 		if err != nil {
-			log.WithFields(log.Fields{
-				"err": err,
-			}).Warning("cannot add vault profile")
+			log.Warn().Err(err).Msg("cannot add vault profile")
 		} else {
 			prof.Profiles = append(prof.Profiles, vaultProfile)
 		}
@@ -82,9 +73,7 @@ var generateCmd = &cobra.Command{
 
 		profJSON, err := json.MarshalIndent(prof, "", "    ")
 		if err != nil {
-			log.WithFields(log.Fields{
-				"err": err,
-			}).Fatal("Cannot indent json results")
+			log.Fatal().Err(err).Msg("cannot indent json")
 		}
 
 		// unescape "&" character.
@@ -95,27 +84,18 @@ var generateCmd = &cobra.Command{
 		if write {
 			err = ioutil.WriteFile(output, profJSON, 0644)
 			if err != nil {
-				log.WithFields(log.Fields{
-					"output": output,
-					"err":    err,
-				}).Fatal("Cannot write to file")
+				log.Fatal().Err(err).Msg("cannot write to file")
 			}
 		} else if diff {
 			curr, err := ioutil.ReadFile(output)
 			if err != nil {
-				log.WithFields(log.Fields{
-					"err":    err,
-					"output": output,
-				}).Fatal("Cannot read file")
+				log.Fatal().Err(err).Msg("cannot read file")
 			}
 
 			var current iterm.Profiles
 			err = json.Unmarshal(curr, &current)
 			if err != nil {
-				log.WithFields(log.Fields{
-					"err":    err,
-					"output": output,
-				}).Fatal("Cannot unmarshal output file")
+				log.Fatal().Err(err).Msg("cannot unmarshal output file")
 			}
 
 			sort.Slice(current.Profiles, func(i, j int) bool {
@@ -138,10 +118,7 @@ var generateCmd = &cobra.Command{
 func expandUser(path string) string {
 	out, err := homedir.Expand(path)
 	if err != nil {
-		log.WithFields(log.Fields{
-			"path": path,
-			"err":  err,
-		}).Fatal("Cannot expand homedir")
+		log.Fatal().Err(err).Msg("cannot expand homedir")
 	}
 	return out
 }

@@ -5,7 +5,7 @@ import (
 
 	"github.com/keybase/go-keychain"
 	"github.com/mhristof/germ/iterm"
-	"github.com/mhristof/germ/log"
+	"github.com/rs/zerolog/log"
 )
 
 type KeyChain struct {
@@ -19,34 +19,25 @@ func (k *KeyChain) Add(name, value string) {
 	item.SetAccessible(keychain.AccessibleWhenUnlocked)
 	err := keychain.AddItem(item)
 	if err == keychain.ErrorDuplicateItem {
-		log.WithFields(log.Fields{
-			"name": name,
-		}).Fatal("Duplicate secret")
+		log.Fatal().Err(err).Str("name", name).Msg("duplicate secret")
 	}
 }
 
 func (k *KeyChain) List() []string {
 	accounts, err := keychain.GetGenericPasswordAccounts(k.Service)
 	if err != nil {
-		log.WithFields(log.Fields{
-			"k.Service": k.Service,
-		}).Fatal("Cannot retrieve the accounts")
+		log.Fatal().Err(err).Str("k.Service", k.Service).Msg("cannot retrive the accounts")
 	}
 
 	return accounts
 }
 
 func (k *KeyChain) Delete(name string) {
-	log.WithFields(log.Fields{
-		"name": name,
-	}).Debug("Deleting keychain object")
+	log.Debug().Str("name", name).Msg("deleting keychain object")
 
 	err := keychain.DeleteGenericPasswordItem(k.Service, name)
 	if err != nil {
-		log.WithFields(log.Fields{
-			"name": name,
-			"err":  err,
-		}).Fatal("Failed to delete")
+		log.Fatal().Err(err).Str("name", name).Msg("cannot delete item")
 	}
 }
 

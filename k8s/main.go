@@ -13,7 +13,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/eks"
 	"github.com/mhristof/germ/iterm"
-	"github.com/mhristof/germ/log"
+	"github.com/rs/zerolog/log"
 	"gopkg.in/yaml.v2"
 )
 
@@ -68,11 +68,7 @@ func GenerateK8sFromAWS(profile string) {
 		config.WithSharedConfigProfile(profile),
 	)
 	if err != nil {
-		log.WithFields(log.Fields{
-			"err":     err,
-			"profile": profile,
-		}).Warning("cannot create aws config")
-
+		log.Warn().Err(err).Str("profile", profile).Msg("cannot create aws config")
 		return
 	}
 
@@ -80,11 +76,7 @@ func GenerateK8sFromAWS(profile string) {
 
 	clusters, err := client.ListClusters(context.TODO(), &eks.ListClustersInput{})
 	if err != nil {
-		log.WithFields(log.Fields{
-			"err":     err,
-			"profile": profile,
-		}).Warning("cannot list clusters")
-
+		log.Warn().Err(err).Str("profile", profile).Msg("cannot list clusters")
 		return
 	}
 
@@ -97,13 +89,12 @@ func GenerateK8sFromAWS(profile string) {
 		err := cmd.Run()
 		outStr, errStr := stdout.String(), stderr.String()
 		if err != nil {
-			log.WithFields(log.Fields{
-				"err":     err,
-				"command": command,
-				"cluster": cluster,
-				"outStr":  outStr,
-				"errStr":  errStr,
-			}).Warning("cannot retrieve kubeconfig for eks cluster")
+			log.Warn().Err(err).
+				Str("command", command).
+				Str("cluster", cluster).
+				Str("outStr", outStr).
+				Str("errStr", errStr).
+				Msg("cannot retrieve kubeconfig for eks cluster")
 
 			continue
 		}
@@ -116,9 +107,7 @@ func (k *KubeConfig) Profiles(dest string, dry bool) []iterm.Profile {
 	for _, cluster := range k.Clusters {
 		this, found := k.GetCluster(cluster.Name)
 		if !found {
-			log.WithFields(log.Fields{
-				"cluster.Name": cluster.Name,
-			}).Fatal("Cluster not found")
+			log.Fatal().Str("cluster.Name", cluster.Name).Msg("cluster not found")
 		}
 
 		path := fmt.Sprintf("dry/run/path/%s", this.name())
@@ -134,9 +123,7 @@ func (k *KubeConfig) Profiles(dest string, dry bool) []iterm.Profile {
 
 func (k *KubeConfig) name() string {
 	if len(k.Clusters) != 1 {
-		log.WithFields(log.Fields{
-			"len(k.Clusters)": len(k.Clusters),
-		}).Fatal("Cannot handle multiple cluster definitions")
+		log.Fatal().Int("len(k.Clusters)", len(k.Clusters)).Msg("cannot handle multuiple cluster defintions")
 	}
 
 	return k.Clusters[0].Name
@@ -144,9 +131,7 @@ func (k *KubeConfig) name() string {
 
 func (k *KubeConfig) Profile(path string) *iterm.Profile {
 	if len(k.Clusters) != 1 {
-		log.WithFields(log.Fields{
-			"len(k.Clusters)": len(k.Clusters),
-		}).Fatal("Cannot handle multiple cluster definitions")
+		log.Fatal().Int("len(k.Clusters)", len(k.Clusters)).Msg("cannot handle multiple cluster definitions")
 	}
 
 	tags := map[string]string{
@@ -163,9 +148,7 @@ func (k *KubeConfig) Profile(path string) *iterm.Profile {
 
 	user, err := user.Current()
 	if err != nil {
-		log.WithFields(log.Fields{
-			"err": err,
-		}).Fatal("Cannot find current user")
+		log.Fatal().Err(err).Msg("cannot find current user")
 	}
 
 	cmd = fmt.Sprintf("%s /usr/bin/login -fp %s", cmd, user.Username)
@@ -177,9 +160,7 @@ func (k *KubeConfig) Profile(path string) *iterm.Profile {
 
 func (k *KubeConfig) AWSProfile() string {
 	if len(k.Clusters) != 1 {
-		log.WithFields(log.Fields{
-			"len(k.Clusters)": len(k.Clusters),
-		}).Fatal("Cannot handle multiple clusters")
+		log.Fatal().Int("len(k.Clusters)", len(k.Clusters)).Msg("cannot handle multiple clusters")
 	}
 
 	for _, item := range k.Users[0].User.Exec.Env {
@@ -195,19 +176,13 @@ func Load(config string) *KubeConfig {
 
 	yamlBytes, err := ioutil.ReadFile(config)
 	if err != nil {
-		log.WithFields(log.Fields{
-			"config": config,
-			"err":    err,
-		}).Warn("Cannot read file")
+		log.Warn().Err(err).Str("config", config).Msg("cannot read file")
 		return &kConfig
 	}
 
 	err = yaml.Unmarshal(yamlBytes, &kConfig)
 	if err != nil {
-		log.WithFields(log.Fields{
-			"config": config,
-			"err":    err,
-		}).Fatal("Cannot unmarshal yaml bytes from config")
+		log.Fatal().Err(err).Str("config", config).Msg("cannot unmarshal yaml bytes from config")
 	}
 
 	return &kConfig
@@ -215,9 +190,7 @@ func Load(config string) *KubeConfig {
 
 func (k *KubeConfig) Print(dest string) string {
 	if len(k.Clusters) != 1 {
-		log.WithFields(log.Fields{
-			"len(k.Clusters)": len(k.Clusters),
-		}).Fatal("Cannot handle multiple cluster definitions")
+		log.Fatal().Int("len(k.Clusters)", len(k.Clusters)).Msg("cannot handle multiple cluster defintions")
 	}
 
 	bytes, err := yaml.Marshal(k)
@@ -228,10 +201,7 @@ func (k *KubeConfig) Print(dest string) string {
 	)
 	err = ioutil.WriteFile(destFile, bytes, 0644)
 	if err != nil {
-		log.WithFields(log.Fields{
-			"destFile": destFile,
-			"err":      err,
-		}).Fatal("Cannot write to file")
+		log.Fatal().Err(err).Str("destFile", destFile).Msg("cannot write to file")
 	}
 
 	return destFile
@@ -241,19 +211,14 @@ func (k *KubeConfig) SplitFiles(dest string) {
 	for _, cluster := range k.Clusters {
 		this, found := k.GetCluster(cluster.Name)
 		if !found {
-			log.WithFields(log.Fields{
-				"cluster.Name": cluster.Name,
-			}).Fatal("Cluster not found")
+			log.Fatal().Str("cluster.Name", cluster.Name).Msg("cluster not found")
 		}
 
 		bytes, err := yaml.Marshal(this)
 		destFile := fmt.Sprintf("%s/%s.yml", dest, cluster.Name)
 		err = ioutil.WriteFile(destFile, bytes, 0644)
 		if err != nil {
-			log.WithFields(log.Fields{
-				"destFile": destFile,
-				"err":      err,
-			}).Fatal("Cannot write to file")
+			log.Fatal().Err(err).Str("destFile", destFile).Msg("cannot write to file")
 		}
 	}
 }

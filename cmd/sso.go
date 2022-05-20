@@ -3,9 +3,9 @@ package cmd
 import (
 	"os"
 
-	"github.com/mhristof/germ/log"
 	"github.com/mhristof/germ/sso"
 	"github.com/mitchellh/go-homedir"
+	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"gopkg.in/ini.v1"
 )
@@ -17,23 +17,17 @@ var ssoCmd = &cobra.Command{
 		awsProfile := os.Getenv("AWS_PROFILE")
 
 		if awsProfile == "" {
-			log.WithFields(log.Fields{
-				"AWS_PROFILE": awsProfile,
-			}).Error("please set AWS_PROFILE")
+			log.Fatal().Msg("cannt retrieve AWS_PROFILE")
 		}
 
 		dir, err := homedir.Expand("~/.aws/config")
 		if err != nil {
-			log.WithFields(log.Fields{
-				"err": err,
-			}).Panic("cannot expand aws config")
+			log.Fatal().Err(err).Msg("cannot expand aws config path")
 		}
 
 		config, err := ini.Load(dir)
 		if err != nil {
-			log.WithFields(log.Fields{
-				"err": err,
-			}).Panic("cannot load aws config")
+			log.Fatal().Err(err).Msg("cannot load aws config")
 		}
 
 		newConfig := sso.UpdateConfig(config, awsProfile, sso.ListAccounts())
@@ -49,7 +43,7 @@ var ssoCmd = &cobra.Command{
 func init() {
 	dir, err := homedir.Expand("~/.aws/config")
 	if err != nil {
-		panic(err)
+		log.Fatal().Err(err).Msg("cannot expand aws config path")
 	}
 
 	ssoCmd.PersistentFlags().StringP("config", "f", dir, "AWS config profile")

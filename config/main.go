@@ -6,7 +6,7 @@ import (
 
 	"github.com/adrg/xdg"
 	"github.com/mhristof/germ/iterm"
-	"github.com/mhristof/germ/log"
+	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
 )
 
@@ -23,9 +23,7 @@ func Load() {
 
 	err := viper.ReadInConfig()
 	if err != nil {
-		log.WithFields(log.Fields{
-			"err": err,
-		}).Warning("cannot parse config")
+		log.Warn().Err(err).Msg("cannot parse config")
 	}
 
 	return

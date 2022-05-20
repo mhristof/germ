@@ -3,10 +3,12 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/MakeNowJust/heredoc"
 	"github.com/mhristof/germ/config"
-	"github.com/mhristof/germ/log"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 )
 
@@ -30,34 +32,39 @@ var rootCmd = &cobra.Command{
 		      command: "date"
 	`, config.Path())),
 	Version: version,
-	Run: func(cmd *cobra.Command, args []string) {
+	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		Verbose(cmd)
 	},
 }
 
 func Verbose(cmd *cobra.Command) {
-	verbose, err := cmd.Flags().GetBool("verbose")
+	verbose, err := cmd.Flags().GetCount("verbose")
 	if err != nil {
-		log.WithFields(log.Fields{
-			"err": err,
-		}).Fatal("Cannot get verbose value")
+		panic(err)
 	}
 
-	if verbose {
-		log.SetLevel(log.DebugLevel)
+	log.Logger = log.Output(zerolog.ConsoleWriter{
+		Out:        os.Stdout,
+		TimeFormat: time.RFC3339,
+	})
+
+	switch verbose {
+	case 1:
+		zerolog.SetGlobalLevel(zerolog.DebugLevel)
+	case 2:
+		zerolog.SetGlobalLevel(zerolog.TraceLevel)
+	default:
+		zerolog.SetGlobalLevel(zerolog.InfoLevel)
 	}
 }
 
 func init() {
+	rootCmd.PersistentFlags().CountP("verbose", "v", "Increase verbosity")
 	rootCmd.PersistentFlags().BoolVarP(&dryRun, "dryrun", "n", false, "Dry run mode, no changes will be made on the system")
-	rootCmd.PersistentFlags().BoolP("verbose", "v", false, "Increase verbosity")
 }
 
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
-		log.WithFields(log.Fields{
-			"err": err,
-		}).Error("Unable to execute command")
-		os.Exit(1)
+		log.Panic().Err(err).Msg("cannot execute command")
 	}
 }
