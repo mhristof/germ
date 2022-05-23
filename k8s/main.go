@@ -199,7 +199,7 @@ func (k *KubeConfig) Print(dest string) string {
 			strings.ReplaceAll(k.Clusters[0].Name, "/", "-"),
 			":", "-"),
 	)
-	err = ioutil.WriteFile(destFile, bytes, 0644)
+	err = ioutil.WriteFile(destFile, bytes, 0600)
 	if err != nil {
 		log.Fatal().Err(err).Str("destFile", destFile).Msg("cannot write to file")
 	}
