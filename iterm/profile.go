@@ -415,6 +415,18 @@ func SmartSelectionRules(custom string) []SmartSelectionRule {
 				},
 			},
 		},
+		{
+			Notes:     "switch terrafrom version",
+			Precision: "high",
+			Regex:     `required_version = "~> (\d*\.\d*\.\d*)"`,
+			Actions: []SmartSelectionRuleAction{
+				{
+					Title:     "change terraform version",
+					Action:    4,
+					Parameter: "tfswitch --latest-stable \\1\n",
+				},
+			},
+		},
 	}
 
 	return append(ssr, loadUserSSR(custom)...)
