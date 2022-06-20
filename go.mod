@@ -25,7 +25,7 @@ require (
 	github.com/spf13/cast v1.5.0 // indirect
 	github.com/spf13/cobra v1.4.0
 	github.com/spf13/viper v1.11.0
-	github.com/stretchr/testify v1.7.1
+	github.com/stretchr/testify v1.7.4
 	github.com/zieckey/goini v0.0.0-20180118150432-0da17d361d26
 	golang.org/x/crypto v0.0.0-20220518034528-6f7dac969898
 	golang.org/x/sys v0.0.0-20220520151302-bc2c85ada10a // indirect
@@ -33,6 +33,5 @@ require (
 	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
 	gopkg.in/ini.v1 v1.66.6
 	gopkg.in/yaml.v2 v2.4.0
-	gopkg.in/yaml.v3 v3.0.0-20220512140231-539c8e751b99 // indirect
 	gotest.tools v2.2.0+incompatible
 )
