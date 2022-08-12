@@ -163,6 +163,10 @@ func (k *KubeConfig) AWSProfile() string {
 		log.Fatal().Int("len(k.Clusters)", len(k.Clusters)).Msg("cannot handle multiple clusters")
 	}
 
+	if len(k.Users) < 1 {
+		return ""
+	}
+
 	for _, item := range k.Users[0].User.Exec.Env {
 		if item.Name == "AWS_PROFILE" {
 			return item.Value
