@@ -43,7 +43,7 @@ func SmartSelectionRules(custom string) []SmartSelectionRule {
 				SmartSelectionRuleAction{
 					Title:     "open webpage",
 					Action:    1,
-					Parameter: `https://www.terraform.io/docs/providers/aws/r/\1.html`,
+					Parameter: `https://www.terraform.io/docs/providers/aws/r/\1`,
 				},
 			},
 		},
@@ -55,7 +55,7 @@ func SmartSelectionRules(custom string) []SmartSelectionRule {
 				{
 					Title:     "open webpage",
 					Action:    1,
-					Parameter: "https://www.terraform.io/docs/providers/aws/d/\\1.html",
+					Parameter: "https://www.terraform.io/docs/providers/aws/d/\\1",
 				},
 			},
 		},
