@@ -92,7 +92,7 @@ func Triggers(profile string) []Trigger {
 		{
 			Regex:     "^([A-Z]{4}-[A-Z]{4})",
 			Action:    "MuteCoprocessTrigger",
-			Parameter: `open "https://device.sso.ap-southeast-1.amazonaws.com/?user_code=\1`,
+			Parameter: `open "https://device.sso.ap-southeast-1.amazonaws.com/?user_code=\1"`,
 		},
 	}
 }
