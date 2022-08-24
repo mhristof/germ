@@ -89,6 +89,11 @@ func Triggers(profile string) []Trigger {
 			Parameter: "git push --set-upstream origin $(git rev-parse --abbrev-ref HEAD)",
 			Regex: "^To push the current branch and set the remote as upstream",
 		},
+		{
+			Regex:     "^([A-Z]{4}-[A-Z]{4})",
+			Action:    "MuteCoprocessTrigger",
+			Parameter: `open "https://device.sso.ap-southeast-1.amazonaws.com/?user_code=\1`,
+		},
 	}
 }
 
