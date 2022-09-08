@@ -10,7 +10,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/eks v1.21.1
 	github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869 // indirect
 	github.com/fsnotify/fsnotify v1.5.4 // indirect
-	github.com/google/go-cmp v0.5.8
+	github.com/google/go-cmp v0.5.9
 	github.com/kevinburke/ssh_config v1.2.0
 	github.com/keybase/go-keychain v0.0.0-20220506172723-c18928ccd7f2
 	github.com/mhristof/go-update v0.1.1
