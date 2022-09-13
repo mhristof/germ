@@ -8,6 +8,7 @@ import (
 
 	"github.com/mitchellh/go-homedir"
 	"github.com/rs/zerolog/log"
+	"github.com/spf13/viper"
 )
 
 func notFound(name string) string {
@@ -46,7 +47,17 @@ func Triggers(profile string) []Trigger {
 		log.Panic().Err(err).Msg("cannot expand ~/")
 	}
 
-	return []Trigger{
+	var ret []Trigger
+
+	if viper.GetBool("aws_open_device_sso") {
+		ret = append(ret, Trigger{
+			Regex:     "^([A-Z]{4}-[A-Z]{4})",
+			Action:    "MuteCoprocessTrigger",
+			Parameter: `open "https://device.sso.ap-southeast-1.amazonaws.com/?user_code=\1"`,
+		})
+	}
+
+	return append(ret, []Trigger{
 		{
 			Partial:   true,
 			Parameter: "id_rsa",
@@ -85,16 +96,11 @@ func Triggers(profile string) []Trigger {
 			Regex:     `^zsh: permission denied: .*`,
 		},
 		{
-			Action: "SendTextTrigger",
+			Action:    "SendTextTrigger",
 			Parameter: "git push --set-upstream origin $(git rev-parse --abbrev-ref HEAD)",
-			Regex: "^To push the current branch and set the remote as upstream",
+			Regex:     "^To push the current branch and set the remote as upstream",
 		},
-		{
-			Regex:     "^([A-Z]{4}-[A-Z]{4})",
-			Action:    "MuteCoprocessTrigger",
-			Parameter: `open "https://device.sso.ap-southeast-1.amazonaws.com/?user_code=\1"`,
-		},
-	}
+	}...)
 }
 
 func yum(name string) string {
@@ -102,7 +108,7 @@ func yum(name string) string {
 		"openssh-client": "openssh-clients",
 	}
 
-	if newName, ok := replacements[name]; ok == true {
+	if newName, ok := replacements[name]; ok {
 		name = newName
 	}
 
