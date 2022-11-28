@@ -58,6 +58,11 @@ var generateCmd = &cobra.Command{
 		prof.Profiles = append(prof.Profiles, vim.Profile())
 		prof.Profiles = append(prof.Profiles, ssh.Profiles()...)
 
+		prof.Profiles = append(prof.Profiles, *iterm.NewProfile(DefaultProfile, map[string]string{
+			"AllowTitleSetting": "true",
+			"BadgeText":         "",
+		}))
+
 		config.Load()
 		prof.Profiles = append(prof.Profiles, config.Generate()...)
 
@@ -82,7 +87,7 @@ var generateCmd = &cobra.Command{
 		profJSON = []byte(strings.ReplaceAll(string(profJSON), `\u003e`, ">"))
 
 		if write {
-			err = ioutil.WriteFile(output, profJSON, 0644)
+			err = ioutil.WriteFile(output, profJSON, 0o644)
 			if err != nil {
 				log.Fatal().Err(err).Msg("cannot write to file")
 			}

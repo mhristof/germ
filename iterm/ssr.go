@@ -16,7 +16,7 @@ func SmartSelectionRules(custom string) []SmartSelectionRule {
 			Precision: "normal",
 			Regex:     `git@gitlab.com:(.*)\.git//(.*)\?`,
 			Actions: []SmartSelectionRuleAction{
-				SmartSelectionRuleAction{
+				{
 					Title:     "open webpage",
 					Action:    1,
 					Parameter: `https://gitlab.com/\1/-/tree/master/\2`,
@@ -28,7 +28,7 @@ func SmartSelectionRules(custom string) []SmartSelectionRule {
 			Precision: "normal",
 			Regex:     `(SC\d*)`,
 			Actions: []SmartSelectionRuleAction{
-				SmartSelectionRuleAction{
+				{
 					Title:     "open webpage",
 					Action:    1,
 					Parameter: `https://github.com/koalaman/shellcheck/wiki/\1`,
@@ -40,7 +40,7 @@ func SmartSelectionRules(custom string) []SmartSelectionRule {
 			Precision: "normal",
 			Regex:     `resource "aws_([a-zA-Z_]*)"`,
 			Actions: []SmartSelectionRuleAction{
-				SmartSelectionRuleAction{
+				{
 					Title:     "open webpage",
 					Action:    1,
 					Parameter: `https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/\1`,
@@ -134,7 +134,7 @@ func SmartSelectionRules(custom string) []SmartSelectionRule {
 		{
 			Notes:     "aws ec2 descripbe-images",
 			Precision: "normal",
-			Regex:     "(ami-[0-9a-f]*)",
+			Regex:     "(ami-[0-9a-f]{5}[0-9a-f]*)",
 			Actions: []SmartSelectionRuleAction{
 				{
 					Title:     "aws ec2 describe-images",
@@ -146,7 +146,7 @@ func SmartSelectionRules(custom string) []SmartSelectionRule {
 		{
 			Notes:     "aws ec2 descripbe-instances",
 			Precision: "normal",
-			Regex:     "(i-[0-9a-f]*)",
+			Regex:     "(i-[0-9a-f]{5}[0-9a-f]*)",
 			Actions: []SmartSelectionRuleAction{
 				{
 					Title:     "aws ec2 describe-instances",
