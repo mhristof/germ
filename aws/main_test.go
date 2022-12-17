@@ -9,7 +9,7 @@ import (
 )
 
 func TestAdd(t *testing.T) {
-	var cases = []struct {
+	cases := []struct {
 		name     string
 		config   []map[string]string
 		expected []iterm.Profile
