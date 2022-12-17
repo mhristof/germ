@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"os/exec"
 	"strconv"
 	"strings"
 	"time"
@@ -38,6 +39,7 @@ type Profile struct {
 	NormalFont             string                 `json:"Normal Font"`
 	Transparency           int                    `json:"Transparency"`
 	InitialUseTransparency bool                   `json:"Initial Use Transparency"`
+	SemanticHistory        map[string]string      `json:"Semantic History"`
 }
 
 type Color struct {
@@ -143,6 +145,11 @@ func NewProfilesFromFile(path string) []Profile {
 }
 
 func NewProfile(name string, config map[string]string) *Profile {
+	python3, err := exec.LookPath("python3")
+	if err != nil {
+		log.Fatal().Err(err).Msg("cannot find python3")
+	}
+
 	prof := Profile{
 		Name:                   name,
 		GUID:                   name,
@@ -161,6 +168,10 @@ func NewProfile(name string, config map[string]string) *Profile {
 		NormalFont:             "Monaco 12",
 		Transparency:           0,
 		InitialUseTransparency: false,
+		SemanticHistory: map[string]string{
+			"text":   fmt.Sprintf(`%s $HOME/bin/nvim-edit.py \1 \2`, python3),
+			"action": "command",
+		},
 	}
 
 	v, found := config["Command"]
@@ -246,11 +257,11 @@ func Tags(c map[string]string) []string {
 
 func CreateKeyboardMap(name string, config map[string]string) map[string]KeyboardMap {
 	maps := map[string]KeyboardMap{
-		"0x5f-0x120000": KeyboardMap{
+		"0x5f-0x120000": {
 			Action: 25,
 			Text:   "Split Horizontally with Current Profile\nSplit Horizontally with Current Profile",
 		},
-		"0x7c-0x120000": KeyboardMap{
+		"0x7c-0x120000": {
 			Action: 25,
 			Text:   "Split Vertically with Current Profile\nSplit Vertically with Current Profile",
 		},
@@ -309,7 +320,7 @@ func (p *Profiles) UpdateAWSSmartSelectionRules() {
 		})
 	}
 
-	for i, _ := range p.Profiles {
+	for i := range p.Profiles {
 		p.Profiles[i].SmartSelectionRules = append(p.Profiles[i].SmartSelectionRules, ssr...)
 	}
 }

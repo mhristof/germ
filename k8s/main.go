@@ -94,6 +94,7 @@ func GenerateK8sFromAWS(profile string) {
 				Str("cluster", cluster).
 				Str("outStr", outStr).
 				Str("errStr", errStr).
+				Str("profile", profile).
 				Msg("cannot retrieve kubeconfig for eks cluster")
 
 			continue
@@ -203,7 +204,7 @@ func (k *KubeConfig) Print(dest string) string {
 			strings.ReplaceAll(k.Clusters[0].Name, "/", "-"),
 			":", "-"),
 	)
-	err = ioutil.WriteFile(destFile, bytes, 0600)
+	err = ioutil.WriteFile(destFile, bytes, 0o600)
 	if err != nil {
 		log.Fatal().Err(err).Str("destFile", destFile).Msg("cannot write to file")
 	}
@@ -220,7 +221,7 @@ func (k *KubeConfig) SplitFiles(dest string) {
 
 		bytes, err := yaml.Marshal(this)
 		destFile := fmt.Sprintf("%s/%s.yml", dest, cluster.Name)
-		err = ioutil.WriteFile(destFile, bytes, 0644)
+		err = ioutil.WriteFile(destFile, bytes, 0o644)
 		if err != nil {
 			log.Fatal().Err(err).Str("destFile", destFile).Msg("cannot write to file")
 		}
