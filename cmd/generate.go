@@ -58,11 +58,6 @@ var generateCmd = &cobra.Command{
 		prof.Profiles = append(prof.Profiles, vim.Profile())
 		prof.Profiles = append(prof.Profiles, ssh.Profiles()...)
 
-		prof.Profiles = append(prof.Profiles, *iterm.NewProfile(DefaultProfile, map[string]string{
-			"AllowTitleSetting": "true",
-			"BadgeText":         "",
-		}))
-
 		config.Load()
 		prof.Profiles = append(prof.Profiles, config.Generate()...)
 
