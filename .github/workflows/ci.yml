@@ -10,11 +10,3 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - run: make test
-  automerge:
-    needs: [build]
-    runs-on: ubuntu-latest
-    steps:
-      - name: automerge
-        uses: mhristof/github-action-automerge@v1.1.1
-        with:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
