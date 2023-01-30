@@ -7,7 +7,7 @@ require (
 	github.com/adrg/xdg v0.4.0
 	github.com/aws/aws-sdk-go v1.44.162
 	github.com/aws/aws-sdk-go-v2/config v1.18.5
-	github.com/aws/aws-sdk-go-v2/service/eks v1.26.0
+	github.com/aws/aws-sdk-go-v2/service/eks v1.27.0
 	github.com/google/go-cmp v0.5.9
 	github.com/kevinburke/ssh_config v1.2.0
 	github.com/keybase/go-keychain v0.0.0-20221114143418-13d058a3d612
