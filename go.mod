@@ -5,7 +5,7 @@ go 1.19
 require (
 	github.com/MakeNowJust/heredoc v1.0.0
 	github.com/adrg/xdg v0.4.0
-	github.com/aws/aws-sdk-go v1.44.162
+	github.com/aws/aws-sdk-go v1.44.208
 	github.com/aws/aws-sdk-go-v2/config v1.18.5
 	github.com/aws/aws-sdk-go-v2/service/eks v1.26.0
 	github.com/google/go-cmp v0.5.9
