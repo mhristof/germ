@@ -95,6 +95,12 @@ func loadCredentials(file string) (string, error) {
 func loadAccessKeys(file string) (string, error) {
 	records := slurpCsv(file)
 
+	if records[0][0][0] == 239 {
+		// unicode chars are in the csv file and we need to trim them
+		// records[0][0]: "\ufeffAccess key ID" string
+		records[0][0] = records[0][0][3:]
+	}
+
 	if records[0][0] != "Access key ID" {
 		return "", errors.New("invalid header for AWS creds file")
 	}
