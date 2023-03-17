@@ -202,6 +202,11 @@ func NewProfile(name string, config map[string]string) *Profile {
 		prof.AllowTitleSetting = value
 	}
 
+	v, found = config["region"]
+	if found {
+		prof.Tags = append(prof.Tags, AWSRegionTags[v]...)
+	}
+
 	prof.Colors()
 	return &prof
 }
