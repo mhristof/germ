@@ -59,7 +59,7 @@ func Triggers(profile string) []Trigger {
 
 	return append(ret, []Trigger{
 		{
-			Regex:     "# timed out waiting for input: auto-logout",
+			Regex:     "^# timed out waiting for input: auto-logout",
 			Action:    "SendTextTrigger",
 			Parameter: "top\\r",
 		},
