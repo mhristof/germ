@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+	"time"
 
 	"github.com/mitchellh/go-homedir"
 	"github.com/rs/zerolog/log"
@@ -68,8 +69,8 @@ var ecrCmd = &cobra.Command{
 				panic(err)
 			}
 
-			// write file
-			err = os.WriteFile(dockerConfigPath+".bak", slurp, 0o644)
+			isoTimestamp := time.Now().Format("2006-01-02T15:04:05")
+			err = os.WriteFile(dockerConfigPath+"."+isoTimestamp, slurp, 0o644)
 			if err != nil {
 				panic(err)
 			}
