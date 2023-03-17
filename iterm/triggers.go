@@ -3,7 +3,7 @@ package iterm
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"strings"
 
 	"github.com/mitchellh/go-homedir"
@@ -21,7 +21,7 @@ func profileTriggers(profile string) []Trigger {
 		return []Trigger{}
 	}
 
-	data, err := ioutil.ReadFile(file)
+	data, err := os.ReadFile(file)
 	if err != nil {
 		return []Trigger{}
 	}
