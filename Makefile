@@ -20,7 +20,7 @@ all: ./bin/germ.darwin
 
 .PHONY: install
 install: ./bin/germ.darwin
-	cp ./bin/germ.darwin $(HOME)/bin/germ
+	cp ./bin/germ.darwin $(HOME)/.local/bin/germ
 
 gen:
 	go run main.go generate -n
