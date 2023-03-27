@@ -41,9 +41,10 @@ var ecrCmd = &cobra.Command{
 			}
 
 			account := section.Key("sso_account_id")
-			region := section.Key("sso_region")
+			region := section.Key("region")
 
-			repos[fmt.Sprintf("%s.dkr.ecr.%s.amazonaws.com", account, region)] = "ecr-login"
+			key := fmt.Sprintf("%s.dkr.ecr.%s.amazonaws.com", account, region)
+			repos[key] = "ecr-login"
 		}
 
 		dockerConfig := struct {
