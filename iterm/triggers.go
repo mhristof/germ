@@ -92,11 +92,6 @@ func Triggers(profile string) []Trigger {
 		},
 		{
 			Action:    "SendTextTrigger",
-			Parameter: "terraform init",
-			Regex:     `^This module is not yet installed. Run "terraform init" to install all modules`,
-		},
-		{
-			Action:    "SendTextTrigger",
 			Parameter: "chmod +x !:0 && !!",
 			Regex:     `^zsh: permission denied: .*`,
 		},
