@@ -9,21 +9,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/kevinburke/ssh_config"
-
 	"github.com/mhristof/germ/iterm"
 	"github.com/rs/zerolog/log"
 )
-
-func containsPattern(patterns []*ssh_config.Pattern, needle string) bool {
-	for _, pattern := range patterns {
-		if strings.Contains(pattern.String(), needle) {
-			return true
-		}
-	}
-
-	return false
-}
 
 func Profiles() []iterm.Profile {
 	config := filepath.Join(os.Getenv("HOME"), ".ssh/config")
@@ -35,6 +23,16 @@ func Profiles() []iterm.Profile {
 	var ret []iterm.Profile
 
 	for _, line := range strings.Split(string(data), "\n") {
+		if strings.Contains(line, "RemoteCommand tmux") {
+			profile := ret[len(ret)-1]
+			profile.KeyboardMap["0x77-0x100000-0xd"] = iterm.KeyboardMap{
+				Action: 25,
+				Text:   "Detach\ntmux.Detach",
+			}
+
+			log.Debug().Str("line", line).Str("profile", profile.Name).Msg("found tmux for profile")
+		}
+
 		if !strings.HasPrefix(line, "Host ") {
 			continue
 		}
@@ -55,6 +53,11 @@ func Profiles() []iterm.Profile {
 		p := iterm.NewProfile(host, map[string]string{
 			"Command": fmt.Sprintf("ssh %s", host),
 		})
+
+		if strings.HasSuffix(host, "-tmux") {
+			// prettyP, _ := json.MarshalIndent(p, "", "  ")
+			// fmt.Println(string(prettyP))
+		}
 
 		p.Tags = []string{
 			"ssh",
