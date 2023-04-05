@@ -41,14 +41,17 @@ func add(p *iterm.Profiles, prefix, name string, config map[string]string) {
 
 	config["Command"] = fmt.Sprintf("/usr/bin/env AWS_PROFILE=%s /usr/bin/login -fp %s", name, user.Username)
 	pName := name
+
 	if prefix != "" {
 		pName = fmt.Sprintf("%s-%s", prefix, name)
 	}
+
 	profile := iterm.NewProfile(pName, config)
 	p.Add(*profile)
 
 	_, sourceProfile := config["source_profile"]
 	_, sso := config["sso_account_id"]
+
 	if !sourceProfile && !sso {
 		config["Command"] = loginCmd(name, config)
 		loginProfile := iterm.NewProfile(fmt.Sprintf("login-%s", name), config)
