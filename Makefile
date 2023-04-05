@@ -20,6 +20,7 @@ all: ./bin/germ.darwin
 
 .PHONY: install
 install: ./bin/germ.darwin
+	rm -f $(HOME)/.local/bin/germ
 	cp ./bin/germ.darwin $(HOME)/.local/bin/germ
 
 gen:
