@@ -16,10 +16,11 @@ import (
 )
 
 var (
-	newName  string
-	value    string
-	file     string
-	keyChain = keychain.KeyChain{
+	newName     string
+	exportAlias string
+	value       string
+	file        string
+	keyChain    = keychain.KeyChain{
 		Service:     "germ",
 		AccessGroup: "germ",
 	}
@@ -49,7 +50,13 @@ func findPassword(file string) string {
 	}
 
 	if exported {
-		bytePassword = []byte(fmt.Sprintf("export %s='%s'", strings.ToUpper(newName), string(bytePassword)))
+		value := fmt.Sprintf("export %s='%s'", strings.ToUpper(newName), string(bytePassword))
+
+		if exportAlias != "" {
+			value = fmt.Sprintf("%s %s='%s'", value, strings.ToUpper(exportAlias), string(bytePassword))
+		}
+
+		bytePassword = []byte(value)
 	}
 
 	return string(bytePassword)
@@ -153,6 +160,7 @@ func init() {
 	newCmd.Flags().StringVarP(&newName, "name", "", "", "Name of the profile")
 	newCmd.Flags().StringVarP(&file, "file", "f", "", "Credentials file to parse")
 	newCmd.Flags().BoolVarP(&exported, "export", "e", false, "Treat the password as an exported variable. The name of the variable will be the uppercased name provided.")
+	newCmd.Flags().StringVarP(&exportAlias, "alias", "a", "", "environment variable alias for the exported variable")
 	newCmd.MarkFlagRequired("name")
 
 	rootCmd.AddCommand(newCmd)
