@@ -95,11 +95,11 @@ func Triggers(profile string) []Trigger {
 			Parameter: "chmod +x !:0 && !!",
 			Regex:     `^zsh: permission denied: .*`,
 		},
-		{
-			Action:    "SendTextTrigger",
-			Parameter: "git push --set-upstream origin $(git rev-parse --abbrev-ref HEAD)",
-			Regex:     "^To push the current branch and set the remote as upstream",
-		},
+		// {
+		// 	Action:    "SendTextTrigger",
+		// 	Parameter: "git push --set-upstream origin $(git rev-parse --abbrev-ref HEAD)",
+		// 	Regex:     "^To push the current branch and set the remote as upstream",
+		// },
 	}...)
 }
 
