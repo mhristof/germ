@@ -13,6 +13,7 @@ import (
 	"github.com/mhristof/germ/iterm"
 	"github.com/mhristof/germ/k8s"
 	"github.com/mhristof/germ/ssh"
+	"github.com/mhristof/germ/ssm"
 	"github.com/mhristof/germ/vault"
 	"github.com/mhristof/germ/vim"
 	"github.com/rs/zerolog/log"
@@ -22,13 +23,14 @@ import (
 )
 
 var (
-	output         string
-	write          bool
-	kubeConfig     string
-	diff           bool
-	AWSConfig      = expandUser("~/.aws/config")
-	AWSCredentials = expandUser("~/.aws/credentials")
-	DefaultProfile = "default-profile"
+	output          string
+	write           bool
+	kubeConfig      string
+	diff            bool
+	ignoreInstances bool
+	AWSConfig       = expandUser("~/.aws/config")
+	AWSCredentials  = expandUser("~/.aws/credentials")
+	DefaultProfile  = "default-profile"
 )
 
 var generateCmd = &cobra.Command{
@@ -60,6 +62,9 @@ var generateCmd = &cobra.Command{
 
 		config.Load()
 		prof.Profiles = append(prof.Profiles, config.Generate()...)
+		if !ignoreInstances {
+			prof.Profiles = append(prof.Profiles, ssm.Generate()...)
+		}
 
 		vaultProfile, err := vault.Profile()
 		if err != nil {
@@ -146,6 +151,7 @@ func init() {
 	)
 	generateCmd.Flags().BoolVarP(&write, "write", "w", false, "Write the output to the destination file")
 	generateCmd.Flags().BoolVarP(&diff, "diff", "d", false, "Generate a diff for the new changes")
+	generateCmd.Flags().BoolVarP(&ignoreInstances, "ignore-instances", "I", false, "Ignore SSM instance profiles")
 
 	rootCmd.AddCommand(generateCmd)
 }

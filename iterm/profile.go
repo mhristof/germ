@@ -22,6 +22,7 @@ type Profile struct {
 	BadgeText              string                 `json:"Badge Text"`
 	Command                string                 `json:"Command"`
 	CustomCommand          string                 `json:"Custom Command"`
+	InitialText            string                 `json:"Initial Text"`
 	CustomDirectory        string                 `json:"Custom Directory"`
 	CustomWindowTitle      string                 `json:"Custom Window Title"`
 	FlashingBell           bool                   `json:"Flashing Bell"`
@@ -205,6 +206,11 @@ func NewProfile(name string, config map[string]string) *Profile {
 	v, found = config["region"]
 	if found {
 		prof.Tags = append(prof.Tags, AWSRegionTags[v]...)
+	}
+
+	v, found = config["Initial Text"]
+	if found {
+		prof.InitialText = v
 	}
 
 	prof.Colors()
