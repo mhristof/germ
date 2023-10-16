@@ -43,6 +43,8 @@ func Generate() []iterm.Profile {
 	wg := sync.WaitGroup{}
 	lock := sync.Mutex{}
 
+	failedProfiles := []string{}
+
 	for name, config := range ini.GetAll() {
 		if name == "" {
 			continue
@@ -55,6 +57,12 @@ func Generate() []iterm.Profile {
 			defer wg.Done()
 
 			profiles, profileInstances := generateForProfile(profile, region, instances)
+
+			if len(profiles) == 0 {
+				failedProfiles = append(failedProfiles, profile)
+				return
+			}
+
 			lock.Lock()
 			defer lock.Unlock()
 
@@ -67,6 +75,12 @@ func Generate() []iterm.Profile {
 	}
 
 	wg.Wait()
+
+	if len(failedProfiles) > 0 {
+		log.WithFields(log.Fields{
+			"profiles": failedProfiles,
+		}).Warning("Failed to search profiles")
+	}
 
 	return ret
 }
@@ -95,7 +109,7 @@ func generateForProfile(profile, region string, instanceIDs map[string]string) (
 		log.WithFields(log.Fields{
 			"error":   err,
 			"profile": profile,
-		}).Error("failed to retrieve account id")
+		}).Debug("failed to retrieve account id")
 
 		return nil, instanceIDs
 	}
@@ -103,8 +117,11 @@ func generateForProfile(profile, region string, instanceIDs map[string]string) (
 	accountAliases, err := iamcli.ListAccountAliases(context.Background(), &iam.ListAccountAliasesInput{})
 	if err != nil {
 		log.WithFields(log.Fields{
-			"error": err,
-		}).Error("failed to retrieve account aliases")
+			"error":   err,
+			"profile": profile,
+		}).Debug("failed to retrieve account aliases")
+
+		return nil, instanceIDs
 	}
 
 	accountAlias := *accountID.Account
