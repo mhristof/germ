@@ -52,6 +52,11 @@ func Generate() []iterm.Profile {
 		profile := strings.TrimPrefix(name, "profile ")
 		region := config["region"]
 
+		log.WithFields(log.Fields{
+			"profile": profile,
+			"region":  region,
+		}).Trace("searching")
+
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
@@ -67,6 +72,12 @@ func Generate() []iterm.Profile {
 			defer lock.Unlock()
 
 			ret = append(ret, profiles...)
+
+			log.WithFields(log.Fields{
+				"profile": profile,
+				"region":  region,
+				"count":   len(profiles),
+			}).Debug("Generated profiles")
 
 			for k, v := range profileInstances {
 				instances[k] = v

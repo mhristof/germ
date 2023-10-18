@@ -7,6 +7,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/adrg/xdg"
 	"github.com/google/go-cmp/cmp"
 	"github.com/mhristof/germ/aws"
 	"github.com/mhristof/germ/config"
@@ -63,7 +64,26 @@ var generateCmd = &cobra.Command{
 		config.Load()
 		prof.Profiles = append(prof.Profiles, config.Generate()...)
 		if !ignoreInstances {
-			prof.Profiles = append(prof.Profiles, ssm.Generate()...)
+			ssmProfs := ssm.Generate()
+			prof.Profiles = append(prof.Profiles, ssmProfs...)
+
+			data, err := json.MarshalIndent(ssmProfs, "", "    ")
+			if err != nil {
+				log.Fatal().Err(err).Msg("cannot marshal ssm profiles")
+			}
+
+			storeToCache("germ.ssm.json", data)
+		} else {
+			data, path := loadFromCache("germ.ssm.json")
+
+			var ssmProfs []iterm.Profile
+			err := json.Unmarshal(data, &ssmProfs)
+			if err != nil {
+				log.Fatal().Str("path", path).Err(err).Msg("cannot unmarshal ssm profiles")
+			} else {
+				prof.Profiles = append(prof.Profiles, ssmProfs...)
+				log.Info().Str("path", path).Msg("using cached ssm profiles")
+			}
 		}
 
 		vaultProfile, err := vault.Profile()
@@ -118,6 +138,38 @@ var generateCmd = &cobra.Command{
 			fmt.Println(string(profJSON))
 		}
 	},
+}
+
+func loadFromCache(name string) ([]byte, string) {
+	path, err := xdg.CacheFile(name)
+	if err != nil {
+		log.Fatal().Err(err).Msg("cannot get cache file")
+		return nil, path
+	}
+
+	data, err := ioutil.ReadFile(path)
+	if err != nil {
+		log.Fatal().Err(err).Msg("cannot read from file")
+		return nil, path
+	}
+
+	log.Debug().Str("path", path).Str("name", name).Msg("loaded from cache")
+	return data, path
+}
+
+func storeToCache(name string, data []byte) {
+	path, err := xdg.CacheFile(name)
+	if err != nil {
+		log.Fatal().Err(err).Msg("cannot get cache file")
+	}
+
+	// write to file
+	err = ioutil.WriteFile(path, data, 0o644)
+	if err != nil {
+		log.Fatal().Err(err).Msg("cannot write to file")
+	}
+
+	log.Debug().Str("path", path).Str("name", name).Msg("stored to cache")
 }
 
 func expandUser(path string) string {
