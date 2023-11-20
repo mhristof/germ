@@ -362,7 +362,7 @@ func (p *Profiles) UpdateKeyboardMaps() {
 				Msg("AWS profile not found")
 		}
 
-		profile.KeyboardMap[KeyboardSortcutAltA] = sourceProfile.KeyboardMap[key]
+		profile.KeyboardMap[KeyboardSortcutAltA] = sourceProfile.KeyboardMap[KeyboardSortcutAltA]
 
 	}
 }
