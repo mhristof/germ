@@ -46,7 +46,7 @@ func (k *KeyChain) Profiles() []iterm.Profile {
 	for _, account := range k.List() {
 		prof := iterm.NewProfile(fmt.Sprintf("custom/%s", account), map[string]string{})
 
-		prof.KeyboardMap["0x61-0x80000"] = iterm.KeyboardMap{
+		prof.KeyboardMap[iterm.KeyboardSortcutAltA] = iterm.KeyboardMap{
 			Action: 12,
 			Text:   fmt.Sprintf("eval $(/usr/bin/security find-generic-password  -s %s -w -a %s)", k.Service, account),
 		}

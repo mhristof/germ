@@ -203,7 +203,7 @@ func TestUpdateKeyboardMaps(t *testing.T) {
 					{
 						GUID: "awesomeAWSProfile",
 						KeyboardMap: map[string]KeyboardMap{
-							"0x61-0x80000": KeyboardMap{
+							KeyboardSortcutAltA: {
 								Text: "tada!",
 							},
 						},
@@ -223,7 +223,7 @@ func TestUpdateKeyboardMaps(t *testing.T) {
 
 	for _, test := range cases {
 		test.profiles.UpdateKeyboardMaps()
-		assert.Equal(t, test.profiles.Profiles[1].KeyboardMap["0x61-0x80000"].Text, "tada!")
+		assert.Equal(t, test.profiles.Profiles[1].KeyboardMap[KeyboardSortcutAltA].Text, "tada!")
 	}
 }
 
@@ -418,7 +418,7 @@ func tempFile(t *testing.T, contents string) (string, func()) {
 	}
 
 	tmpfn := filepath.Join(dir, "tmpfile")
-	if err := ioutil.WriteFile(tmpfn, []byte(contents), 0666); err != nil {
+	if err := ioutil.WriteFile(tmpfn, []byte(contents), 0o666); err != nil {
 		t.Fatal(err)
 	}
 	return tmpfn, func() {
@@ -436,16 +436,16 @@ func TestProfileTree(t *testing.T) {
 			name: "multiple child accounts",
 			profiles: Profiles{
 				Profiles: []Profile{
-					Profile{
+					{
 						GUID: "parent",
 					},
-					Profile{
+					{
 						GUID: "child1",
 						Tags: []string{
 							"source-profile=parent",
 						},
 					},
-					Profile{
+					{
 						GUID: "child2",
 						Tags: []string{
 							"source-profile=parent",

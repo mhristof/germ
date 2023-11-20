@@ -13,6 +13,12 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+const (
+	KeyboardSendText = 12
+
+	KeyboardSortcutAltA = "0x61-0x80000"
+)
+
 type Profiles struct {
 	Profiles []Profile `json:"Profiles"`
 }
@@ -280,7 +286,7 @@ func CreateKeyboardMap(name string, config map[string]string) map[string]Keyboar
 
 	v, found := config["source_profile"]
 	if found {
-		maps["0x61-0x80000"] = KeyboardMap{
+		maps[KeyboardSortcutAltA] = KeyboardMap{
 			Action: 28,
 			Text:   fmt.Sprintf("login-%s", v),
 		}
@@ -288,7 +294,7 @@ func CreateKeyboardMap(name string, config map[string]string) map[string]Keyboar
 
 	_, found = config["sso_account_id"]
 	if found {
-		maps["0x61-0x80000-0x0"] = KeyboardMap{
+		maps[KeyboardSortcutAltA] = KeyboardMap{
 			Version: 1,
 			Action:  12,
 			Text:    "aws sso login",
@@ -356,9 +362,7 @@ func (p *Profiles) UpdateKeyboardMaps() {
 				Msg("AWS profile not found")
 		}
 
-		key := "0x61-0x80000"
-
-		profile.KeyboardMap[key] = sourceProfile.KeyboardMap[key]
+		profile.KeyboardMap[KeyboardSortcutAltA] = sourceProfile.KeyboardMap[key]
 
 	}
 }

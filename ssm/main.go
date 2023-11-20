@@ -195,7 +195,14 @@ func generateForProfile(profile, region string, instanceIDs map[string]string) (
 			"Tags":           fmt.Sprintf("AWS, %s", accountAlias) + ",account=" + *accountID.Account,
 		}
 
-		ret = append(ret, *iterm.NewProfile(fmt.Sprintf("%s:%s:ssm-%s", accountAlias, region, name), config))
+		newProfile := iterm.NewProfile(fmt.Sprintf("%s:%s:ssm-%s", accountAlias, region, name), config)
+
+		newProfile.KeyboardMap[iterm.KeyboardSortcutAltA] = iterm.KeyboardMap{
+			Action: iterm.KeyboardSendText,
+			Text:   fmt.Sprintf("AWS_PROFILE=%s aws sso login\n", profile),
+		}
+
+		ret = append(ret, *newProfile)
 
 		instanceIDs[*instance.InstanceId] = name
 	}
