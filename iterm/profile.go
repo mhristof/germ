@@ -157,6 +157,8 @@ func NewProfile(name string, config map[string]string) *Profile {
 		log.Fatal().Err(err).Msg("cannot find python3")
 	}
 
+	uname := newUniqueName(name)
+
 	prof := Profile{
 		Name:                   name,
 		GUID:                   name,
@@ -164,7 +166,7 @@ func NewProfile(name string, config map[string]string) *Profile {
 		CustomDirectory:        "Recycle",
 		SmartSelectionRules:    SmartSelectionRules("~/.germ.ssr.json"),
 		Triggers:               Triggers(name),
-		BadgeText:              name,
+		BadgeText:              name + "\n" + uname,
 		TitleComponents:        32,
 		CustomWindowTitle:      name,
 		AllowTitleSetting:      false,
@@ -180,6 +182,8 @@ func NewProfile(name string, config map[string]string) *Profile {
 			"action": "command",
 		},
 	}
+
+	prof.Tags = append(prof.Tags, uname)
 
 	v, found := config["Command"]
 	if found {
