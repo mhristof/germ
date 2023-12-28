@@ -189,8 +189,9 @@ func generateForProfile(profile, region string, instanceIDs map[string]string) (
 			"name": name,
 		}).Debug("Instance")
 
+		bashCommand := fmt.Sprintf("bash -c 'AWS_PROFILE=%s ssm %s'", profile, name)
 		config := map[string]string{
-			"Initial Text":   fmt.Sprintf("bash -c 'AWS_PROFILE=%s ssm %s'", profile, name),
+			"Initial Text":   bashCommand,
 			"Custom Command": "No",
 			"Tags":           fmt.Sprintf("AWS, %s", accountAlias) + ",account=" + *accountID.Account,
 		}
@@ -199,7 +200,7 @@ func generateForProfile(profile, region string, instanceIDs map[string]string) (
 
 		newProfile.KeyboardMap[iterm.KeyboardSortcutAltA] = iterm.KeyboardMap{
 			Action: iterm.KeyboardSendText,
-			Text:   fmt.Sprintf("AWS_PROFILE=%s aws sso login\n", profile),
+			Text:   fmt.Sprintf("AWS_PROFILE=%s aws sso login && %s\n", profile, bashCommand),
 		}
 
 		ret = append(ret, *newProfile)
