@@ -96,6 +96,9 @@ func Generate() []iterm.Profile {
 	return ret
 }
 
+// create instanceID mutex
+var instanceIDMutex = &sync.Mutex{}
+
 func generateForProfile(profile, region string, instanceIDs map[string]string) ([]iterm.Profile, map[string]string) {
 	cfg, err := config.LoadDefaultConfig(
 		context.Background(),
@@ -205,7 +208,14 @@ func generateForProfile(profile, region string, instanceIDs map[string]string) (
 
 		ret = append(ret, *newProfile)
 
+		log.WithFields(log.Fields{
+			"profile":      newProfile.Name,
+			"instanceName": name,
+		}).Info("Generated profile")
+
+		instanceIDMutex.Lock()
 		instanceIDs[*instance.InstanceId] = name
+		instanceIDMutex.Unlock()
 	}
 
 	return ret, instanceIDs
