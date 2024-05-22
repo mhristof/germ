@@ -24,29 +24,30 @@ type Profiles struct {
 }
 
 type Profile struct {
-	AllowTitleSetting      bool                   `json:"Allow Title Setting"`
-	BadgeText              string                 `json:"Badge Text"`
-	Command                string                 `json:"Command"`
-	CustomCommand          string                 `json:"Custom Command"`
-	InitialText            string                 `json:"Initial Text"`
-	CustomDirectory        string                 `json:"Custom Directory"`
-	CustomWindowTitle      string                 `json:"Custom Window Title"`
-	FlashingBell           bool                   `json:"Flashing Bell"`
-	GUID                   string                 `json:"Guid"`
-	KeyboardMap            map[string]KeyboardMap `json:"Keyboard Map,omitempty"`
-	Name                   string                 `json:"Name"`
-	SilenceBell            bool                   `json:"Silence Bell"`
-	SmartSelectionRules    []SmartSelectionRule   `json:"Smart Selection Rules"`
-	Tags                   []string               `json:"Tags"`
-	TitleComponents        int64                  `json:"Title Components"`
-	Triggers               []Trigger              `json:"Triggers"`
-	UnlimitedScrollback    bool                   `json:"Unlimited Scrollback"`
-	BackgroundColor        Color                  `json:"Background Color"`
-	BoundHosts             []string               `json:"Bound Hosts,omitempty"`
-	NormalFont             string                 `json:"Normal Font"`
-	Transparency           int                    `json:"Transparency"`
-	InitialUseTransparency bool                   `json:"Initial Use Transparency"`
-	SemanticHistory        map[string]string      `json:"Semantic History"`
+	AllowTitleSetting       bool                   `json:"Allow Title Setting"`
+	BadgeText               string                 `json:"Badge Text"`
+	Command                 string                 `json:"Command"`
+	CustomCommand           string                 `json:"Custom Command"`
+	InitialText             string                 `json:"Initial Text"`
+	CustomDirectory         string                 `json:"Custom Directory"`
+	CustomWindowTitle       string                 `json:"Custom Window Title"`
+	FlashingBell            bool                   `json:"Flashing Bell"`
+	GUID                    string                 `json:"Guid"`
+	KeyboardMap             map[string]KeyboardMap `json:"Keyboard Map,omitempty"`
+	Name                    string                 `json:"Name"`
+	SilenceBell             bool                   `json:"Silence Bell"`
+	SmartSelectionRules     []SmartSelectionRule   `json:"Smart Selection Rules"`
+	Tags                    []string               `json:"Tags"`
+	TitleComponents         int64                  `json:"Title Components"`
+	Triggers                []Trigger              `json:"Triggers"`
+	UnlimitedScrollback     bool                   `json:"Unlimited Scrollback"`
+	BackgroundColor         Color                  `json:"Background Color"`
+	BoundHosts              []string               `json:"Bound Hosts,omitempty"`
+	NormalFont              string                 `json:"Normal Font"`
+	Transparency            int                    `json:"Transparency"`
+	InitialUseTransparency  bool                   `json:"Initial Use Transparency"`
+	SemanticHistory         map[string]string      `json:"Semantic History"`
+	SetLocalEnvironmentVars int                    `json:"Set Local Environment Vars"`
 }
 
 type Color struct {
@@ -181,6 +182,7 @@ func NewProfile(name string, config map[string]string) *Profile {
 			"text":   fmt.Sprintf(`%s $HOME/bin/nvim-edit.py \1 \2`, python3),
 			"action": "command",
 		},
+		SetLocalEnvironmentVars: 2,
 	}
 
 	prof.Tags = append(prof.Tags, uname)
