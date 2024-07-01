@@ -13,7 +13,7 @@ import (
 	awsssm "github.com/aws/aws-sdk-go-v2/service/ssm"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
 	"github.com/mhristof/germ/iterm"
-	log "github.com/sirupsen/logrus"
+	"github.com/rs/zerolog/log"
 	"github.com/zieckey/goini"
 )
 
@@ -30,11 +30,7 @@ func Generate() []iterm.Profile {
 	config := expandUser("~/.aws/config")
 	err := ini.ParseFile(config)
 	if err != nil {
-		log.WithFields(log.Fields{
-			"error":  err,
-			"config": config,
-		}).Error("Failed to parse AWS config")
-
+		log.Error().Err(err).Str("config", config).Msg("Failed to parse AWS config")
 		return nil
 	}
 
@@ -52,10 +48,7 @@ func Generate() []iterm.Profile {
 		profile := strings.TrimPrefix(name, "profile ")
 		region := config["region"]
 
-		log.WithFields(log.Fields{
-			"profile": profile,
-			"region":  region,
-		}).Trace("searching")
+		log.Trace().Str("profile", profile).Str("region", region).Msg("searching")
 
 		wg.Add(1)
 		go func() {
@@ -73,11 +66,7 @@ func Generate() []iterm.Profile {
 
 			ret = append(ret, profiles...)
 
-			log.WithFields(log.Fields{
-				"profile": profile,
-				"region":  region,
-				"count":   len(profiles),
-			}).Debug("Generated profiles")
+			log.Debug().Str("profile", profile).Str("region", region).Int("count", len(profiles)).Msg("Generated profiles")
 
 			for k, v := range profileInstances {
 				instances[k] = v
@@ -88,9 +77,7 @@ func Generate() []iterm.Profile {
 	wg.Wait()
 
 	if len(failedProfiles) > 0 {
-		log.WithFields(log.Fields{
-			"profiles": failedProfiles,
-		}).Warning("Failed to search profiles")
+		log.Warn().Str("profiles", strings.Join(failedProfiles, ",")).Msg("Failed to search profiles")
 	}
 
 	return ret
@@ -105,10 +92,7 @@ func generateForProfile(profile, region string, instanceIDs map[string]string) (
 		config.WithSharedConfigProfile(profile),
 	)
 	if err != nil {
-		log.WithFields(log.Fields{
-			"profile": profile,
-			"error":   err,
-		}).Debug("Failed to load AWS config")
+		log.Debug().Err(err).Str("profile", profile).Msg("Failed to load AWS config")
 
 		return nil, instanceIDs
 	}
@@ -120,20 +104,14 @@ func generateForProfile(profile, region string, instanceIDs map[string]string) (
 
 	accountID, err := stscli.GetCallerIdentity(context.Background(), &sts.GetCallerIdentityInput{})
 	if err != nil || accountID == nil {
-		log.WithFields(log.Fields{
-			"error":   err,
-			"profile": profile,
-		}).Debug("failed to retrieve account id")
+		log.Debug().Err(err).Str("profile", profile).Msg("Failed to retrieve account id")
 
 		return nil, instanceIDs
 	}
 
 	accountAliases, err := iamcli.ListAccountAliases(context.Background(), &iam.ListAccountAliasesInput{})
 	if err != nil {
-		log.WithFields(log.Fields{
-			"error":   err,
-			"profile": profile,
-		}).Debug("failed to retrieve account aliases")
+		log.Debug().Err(err).Str("profile", profile).Msg("Failed to retrieve account aliases")
 
 		return nil, instanceIDs
 	}
@@ -143,105 +121,86 @@ func generateForProfile(profile, region string, instanceIDs map[string]string) (
 		accountAlias = accountAliases.AccountAliases[0]
 	}
 
-	instances, err := ssmcli.DescribeInstanceInformation(context.Background(), &awsssm.DescribeInstanceInformationInput{})
-	if err != nil {
-		log.WithFields(log.Fields{
-			"error":   err,
-			"profile": profile,
-		}).Debug("Failed to describe instances")
-
-		return nil, instanceIDs
-	}
-
 	ret := []iterm.Profile{}
 	asgs := map[string]struct{}{}
 
-	for _, instance := range instances.InstanceInformationList {
-		ec2Instance, err := ec2cli.DescribeInstances(context.Background(), &ec2.DescribeInstancesInput{
-			InstanceIds: []string{*instance.InstanceId},
-		})
+	// get all instances with a paginator
+	paginator := awsssm.NewDescribeInstanceInformationPaginator(ssmcli, &awsssm.DescribeInstanceInformationInput{})
+
+	for paginator.HasMorePages() {
+		instances, err := paginator.NextPage(context.Background())
 		if err != nil {
-			log.WithFields(log.Fields{
-				"error": err,
-			}).Error("Failed to describe instances")
+			log.Error().Err(err).Msg("Failed to describe instances")
+			return nil, instanceIDs
 		}
 
-		_, found := instanceIDs[*instance.InstanceId]
-		if found {
-			log.WithFields(log.Fields{
-				"id": *instance.InstanceId,
-			}).Debug("Instance already found")
+		for _, instance := range instances.InstanceInformationList {
+			ec2Instance, err := ec2cli.DescribeInstances(context.Background(), &ec2.DescribeInstancesInput{
+				InstanceIds: []string{*instance.InstanceId},
+			})
+			if err != nil {
+				log.Error().Err(err).Msg("Failed to describe instances")
+			}
 
-			continue
-		}
-
-		name := ""
-
-		for _, tag := range ec2Instance.Reservations[0].Instances[0].Tags {
-			_, found := asgs[*tag.Value]
+			_, found := instanceIDs[*instance.InstanceId]
 			if found {
-				// If the ASG group has already been processed, skip setting
-				// the instance name so the instance is not processed again.
-				log.WithFields(log.Fields{
-					"id":  *instance.InstanceId,
-					"asg": *tag.Value,
-				}).Debug("Instance already found")
+				log.Debug().Str("id", *instance.InstanceId).Msg("Instance already found")
 
 				continue
 			}
 
-			if *tag.Key == "aws:autoscaling:groupName" {
-				asgs[*tag.Value] = struct{}{}
+			name := ""
+
+			for _, tag := range ec2Instance.Reservations[0].Instances[0].Tags {
+				_, found := asgs[*tag.Value]
+				if found {
+					// If the ASG group has already been processed, skip setting
+					// the instance name so the instance is not processed again.
+					log.Debug().Str("id", *instance.InstanceId).Str("asg", *tag.Value).Msg("Instance already found")
+					continue
+				}
+
+				if *tag.Key == "aws:autoscaling:groupName" {
+					asgs[*tag.Value] = struct{}{}
+				}
+
+				if *tag.Key == "Name" {
+					log.Debug().Str("id", *instance.InstanceId).Str("name", *tag.Value).Msg("Instance found")
+
+					name = *tag.Value
+				}
 			}
 
-			if *tag.Key == "Name" {
-				log.WithFields(log.Fields{
-					"id":   *instance.InstanceId,
-					"name": *tag.Value,
-				}).Debug("Instance")
+			log.Debug().Str("id", *instance.InstanceId).Str("name", name).Msg("Instance found")
 
-				name = *tag.Value
+			if name == "" {
+				log.Debug().Str("id", *instance.InstanceId).Msg("Instance has no name")
+
+				continue
 			}
+
+			bashCommand := fmt.Sprintf("bash -c 'AWS_PROFILE=%s ssm %s'", profile, name)
+			config := map[string]string{
+				"Initial Text":   bashCommand,
+				"Custom Command": "No",
+				"Tags":           fmt.Sprintf("AWS, %s", accountAlias) + ",account=" + *accountID.Account,
+			}
+
+			newProfile := iterm.NewProfile(fmt.Sprintf("%s:%s:ssm-%s", accountAlias, region, name), config)
+
+			newProfile.KeyboardMap[iterm.KeyboardSortcutAltA] = iterm.KeyboardMap{
+				Action: iterm.KeyboardSendText,
+				Text:   fmt.Sprintf("AWS_PROFILE=%s aws sso login && %s\n", profile, bashCommand),
+			}
+
+			ret = append(ret, *newProfile)
+
+			log.Info().Str("profile", profile).Str("region", region).Str("instance", name).Str("instanceID", *instance.InstanceId).Msg("Generated profile")
+
+			instanceIDMutex.Lock()
+			instanceIDs[*instance.InstanceId] = name
+			instanceIDMutex.Unlock()
 		}
-
-		log.WithFields(log.Fields{
-			"id":   *instance.InstanceId,
-			"name": name,
-		}).Debug("Instance")
-
-		if name == "" {
-			log.WithFields(log.Fields{
-				"id": *instance.InstanceId,
-			}).Debug("Instance has no name")
-
-			continue
-		}
-
-		bashCommand := fmt.Sprintf("bash -c 'AWS_PROFILE=%s ssm %s'", profile, name)
-		config := map[string]string{
-			"Initial Text":   bashCommand,
-			"Custom Command": "No",
-			"Tags":           fmt.Sprintf("AWS, %s", accountAlias) + ",account=" + *accountID.Account,
-		}
-
-		newProfile := iterm.NewProfile(fmt.Sprintf("%s:%s:ssm-%s", accountAlias, region, name), config)
-
-		newProfile.KeyboardMap[iterm.KeyboardSortcutAltA] = iterm.KeyboardMap{
-			Action: iterm.KeyboardSendText,
-			Text:   fmt.Sprintf("AWS_PROFILE=%s aws sso login && %s\n", profile, bashCommand),
-		}
-
-		ret = append(ret, *newProfile)
-
-		log.WithFields(log.Fields{
-			"profile":      newProfile.Name,
-			"instanceName": name,
-			"instanceID":   *instance.InstanceId,
-		}).Info("Generated profile")
-
-		instanceIDMutex.Lock()
-		instanceIDs[*instance.InstanceId] = name
-		instanceIDMutex.Unlock()
 	}
 
 	return ret, instanceIDs
