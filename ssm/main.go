@@ -154,6 +154,7 @@ func generateForProfile(profile, region string, instanceIDs map[string]string) (
 	}
 
 	ret := []iterm.Profile{}
+	asgs := map[string]struct{}{}
 
 	for _, instance := range instances.InstanceInformationList {
 		ec2Instance, err := ec2cli.DescribeInstances(context.Background(), &ec2.DescribeInstancesInput{
@@ -177,6 +178,22 @@ func generateForProfile(profile, region string, instanceIDs map[string]string) (
 		name := ""
 
 		for _, tag := range ec2Instance.Reservations[0].Instances[0].Tags {
+			_, found := asgs[*tag.Value]
+			if found {
+				// If the ASG group has already been processed, skip setting
+				// the instance name so the instance is not processed again.
+				log.WithFields(log.Fields{
+					"id":  *instance.InstanceId,
+					"asg": *tag.Value,
+				}).Debug("Instance already found")
+
+				continue
+			}
+
+			if *tag.Key == "aws:autoscaling:groupName" {
+				asgs[*tag.Value] = struct{}{}
+			}
+
 			if *tag.Key == "Name" {
 				log.WithFields(log.Fields{
 					"id":   *instance.InstanceId,
@@ -191,6 +208,14 @@ func generateForProfile(profile, region string, instanceIDs map[string]string) (
 			"id":   *instance.InstanceId,
 			"name": name,
 		}).Debug("Instance")
+
+		if name == "" {
+			log.WithFields(log.Fields{
+				"id": *instance.InstanceId,
+			}).Debug("Instance has no name")
+
+			continue
+		}
 
 		bashCommand := fmt.Sprintf("bash -c 'AWS_PROFILE=%s ssm %s'", profile, name)
 		config := map[string]string{
@@ -211,6 +236,7 @@ func generateForProfile(profile, region string, instanceIDs map[string]string) (
 		log.WithFields(log.Fields{
 			"profile":      newProfile.Name,
 			"instanceName": name,
+			"instanceID":   *instance.InstanceId,
 		}).Info("Generated profile")
 
 		instanceIDMutex.Lock()
