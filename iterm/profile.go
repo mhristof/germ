@@ -175,7 +175,7 @@ func NewProfile(name string, config map[string]string) *Profile {
 		SilenceBell:            true,
 		KeyboardMap:            CreateKeyboardMap(name, config),
 		UnlimitedScrollback:    true,
-		NormalFont:             "Monaco 12",
+		NormalFont:             "HackNFM-Regular 12",
 		Transparency:           0,
 		InitialUseTransparency: false,
 		SemanticHistory: map[string]string{
