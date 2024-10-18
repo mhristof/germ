@@ -122,7 +122,7 @@ func generateForProfile(profile, region string, instanceIDs map[string]string) (
 	}
 
 	ret := []iterm.Profile{}
-	asgs := map[string]struct{}{}
+	asgs := map[string]string{}
 
 	// get all instances with a paginator
 	paginator := awsssm.NewDescribeInstanceInformationPaginator(ssmcli, &awsssm.DescribeInstanceInformationInput{})
@@ -150,31 +150,42 @@ func generateForProfile(profile, region string, instanceIDs map[string]string) (
 			}
 
 			name := ""
+			asgName := ""
 
 			for _, tag := range ec2Instance.Reservations[0].Instances[0].Tags {
-				_, found := asgs[*tag.Value]
-				if found {
-					// If the ASG group has already been processed, skip setting
-					// the instance name so the instance is not processed again.
-					log.Debug().Str("id", *instance.InstanceId).Str("asg", *tag.Value).Msg("Instance already found")
-					continue
-				}
+				log.Trace().Str("key", *tag.Key).Str("value", *tag.Value).Msg("Tag found")
 
 				if *tag.Key == "aws:autoscaling:groupName" {
-					asgs[*tag.Value] = struct{}{}
+					firstInstance := asgs[*tag.Value] == ""
+					if firstInstance {
+						asgs[*tag.Value] = *instance.InstanceId
+					}
+
+					asgName = *tag.Value
+					log.Debug().
+						Bool("first", firstInstance).
+						Str("id", *instance.InstanceId).Str("asg", asgName).Msg("ASG found")
 				}
 
 				if *tag.Key == "Name" {
-					log.Debug().Str("id", *instance.InstanceId).Str("name", *tag.Value).Msg("Instance found")
-
 					name = *tag.Value
 				}
 			}
 
-			log.Debug().Str("id", *instance.InstanceId).Str("name", name).Msg("Instance found")
+			log.Debug().
+				Str("id", *instance.InstanceId).
+				Str("name", name).
+				Int("tags", len(ec2Instance.Reservations[0].Instances[0].Tags)).
+				Msg("Instance found")
 
 			if name == "" {
 				log.Debug().Str("id", *instance.InstanceId).Msg("Instance has no name")
+
+				continue
+			}
+
+			if asgName != "" && asgs[asgName] != *instance.InstanceId {
+				log.Debug().Str("id", *instance.InstanceId).Str("asg", asgName).Msg("ASG already handled")
 
 				continue
 			}
@@ -195,7 +206,13 @@ func generateForProfile(profile, region string, instanceIDs map[string]string) (
 
 			ret = append(ret, *newProfile)
 
-			log.Info().Str("profile", profile).Str("region", region).Str("instance", name).Str("instanceID", *instance.InstanceId).Msg("Generated profile")
+			log.Info().
+				Str("profile", profile).
+				Str("region", region).
+				Str("instance", name).
+				Str("instanceID", *instance.InstanceId).
+				Str("asg", asgName).
+				Msg("Generated profile")
 
 			instanceIDMutex.Lock()
 			instanceIDs[*instance.InstanceId] = name
