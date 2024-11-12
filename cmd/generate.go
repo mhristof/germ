@@ -96,6 +96,21 @@ var generateCmd = &cobra.Command{
 		prof.UpdateKeyboardMaps()
 		prof.UpdateAWSSmartSelectionRules()
 
+		var uniqProf iterm.Profiles
+		existingProfiles := map[string]struct{}{}
+		for _, profile := range prof.Profiles {
+			if _, ok := existingProfiles[profile.Name]; ok {
+				log.Warn().Str("name", profile.Name).Msg("duplicate profile")
+				continue
+			}
+
+			existingProfiles[profile.Name] = struct{}{}
+			uniqProf.Profiles = append(uniqProf.Profiles, profile)
+
+		}
+
+		prof = uniqProf
+
 		profJSON, err := json.MarshalIndent(prof, "", "    ")
 		if err != nil {
 			log.Fatal().Err(err).Msg("cannot indent json")
