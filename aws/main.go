@@ -27,7 +27,7 @@ func Profiles(prefix, config string) []iterm.Profile {
 			continue
 		}
 		tName := strings.TrimPrefix(name, "profile ")
-		add(&prof, prefix, fmt.Sprintf("%s", tName), section)
+		add(&prof, prefix, tName, section)
 	}
 
 	return prof.Profiles
