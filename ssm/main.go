@@ -42,7 +42,7 @@ func Generate() []iterm.Profile {
 	failedProfiles := []string{}
 
 	for name, config := range ini.GetAll() {
-		if name == "" {
+		if name == "" || name == "default" {
 			continue
 		}
 		profile := strings.TrimPrefix(name, "profile ")
@@ -190,11 +190,17 @@ func generateForProfile(profile, region string, instanceIDs map[string]string) (
 				continue
 			}
 
+			tags := fmt.Sprintf("AWS, %s", accountAlias) + ",account=" + *accountID.Account
+			if regionTags, ok := iterm.AWSRegionTags[region]; ok {
+				if len(regionTags) > 2 {
+					tags += ",region_id=" + regionTags[2]
+				}
+			}
 			bashCommand := fmt.Sprintf("bash -c 'AWS_PROFILE=%s ssm %s'", profile, name)
 			config := map[string]string{
 				"Initial Text":   bashCommand,
 				"Custom Command": "No",
-				"Tags":           fmt.Sprintf("AWS, %s", accountAlias) + ",account=" + *accountID.Account,
+				"Tags":           tags,
 			}
 
 			newProfile := iterm.NewProfile(fmt.Sprintf("%s:%s:ssm-%s", accountAlias, region, name), config)

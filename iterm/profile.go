@@ -270,11 +270,6 @@ func Tags(c map[string]string) []string {
 		tags = append(tags, strings.Split(cTags, ",")...)
 	}
 
-	cTags, found = c["tags"]
-	if found {
-		tags = append(tags, strings.Split(cTags, ",")...)
-	}
-
 	return tags
 }
 
