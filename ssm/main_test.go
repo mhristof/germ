@@ -140,8 +140,12 @@ func selectProfiles(allProfiles map[string]map[string]string) map[string]map[str
 			adminProfiles[accountRegion] = profile
 		} else if strings.Contains(profile, "ReadOnlyAccess") {
 			accountRegion = strings.Replace(profile, "-ReadOnlyAccess", "", 1)
+			// Only add ReadOnly if no admin profile exists for this account-region
 			if _, hasAdmin := adminProfiles[accountRegion]; !hasAdmin {
-				otherProfiles[accountRegion] = profile
+				// Also check if we don't already have a non-readonly profile
+				if _, hasOther := otherProfiles[accountRegion]; !hasOther {
+					otherProfiles[accountRegion] = profile
+				}
 			}
 		} else {
 			parts := strings.Split(profile, "-")
@@ -169,8 +173,9 @@ func selectProfiles(allProfiles map[string]map[string]string) map[string]map[str
 			regionParts := parts[regionStartIdx:]
 			accountRegion = strings.Join(accountParts, "-") + "-" + strings.Join(regionParts, "-")
 
+			// Prefer non-readonly profiles over readonly, but not over admin
 			if _, hasAdmin := adminProfiles[accountRegion]; !hasAdmin {
-				otherProfiles[accountRegion] = profile
+				otherProfiles[accountRegion] = profile // This will overwrite readonly if it exists
 			}
 		}
 	}
