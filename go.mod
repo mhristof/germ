@@ -13,7 +13,6 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/ssm v1.37.5
 	github.com/aws/aws-sdk-go-v2/service/sts v1.18.9
 	github.com/google/go-cmp v0.5.9
-	github.com/keybase/go-keychain v0.0.0-20230307172405-3e4884637dd1
 	github.com/mhristof/go-update v0.1.1
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/pkg/errors v0.9.1

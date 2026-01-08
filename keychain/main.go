@@ -2,8 +2,9 @@ package keychain
 
 import (
 	"fmt"
+	"os/exec"
+	"strings"
 
-	"github.com/keybase/go-keychain"
 	"github.com/mhristof/germ/iterm"
 	"github.com/rs/zerolog/log"
 )
@@ -14,28 +15,63 @@ type KeyChain struct {
 }
 
 func (k *KeyChain) Add(name, value string) {
-	item := keychain.NewGenericPassword(k.Service, name, name, []byte(value), k.AccessGroup)
-	item.SetSynchronizable(keychain.SynchronizableNo)
-	item.SetAccessible(keychain.AccessibleWhenUnlocked)
-	err := keychain.AddItem(item)
-	if err == keychain.ErrorDuplicateItem {
-		log.Fatal().Err(err).Str("name", name).Msg("duplicate secret")
+	// Use the security command-line tool instead of deprecated APIs
+	cmd := exec.Command("security", "add-generic-password", 
+		"-s", k.Service, 
+		"-a", name, 
+		"-w", value,
+		"-U") // -U updates if exists
+	
+	err := cmd.Run()
+	if err != nil {
+		log.Fatal().Err(err).Str("name", name).Msg("failed to add keychain item")
 	}
 }
 
 func (k *KeyChain) List() []string {
-	accounts, err := keychain.GetGenericPasswordAccounts(k.Service)
+	// Use security command to list accounts
+	cmd := exec.Command("security", "dump-keychain")
+	output, err := cmd.Output()
 	if err != nil {
-		log.Fatal().Err(err).Str("k.Service", k.Service).Msg("cannot retrive the accounts")
+		log.Fatal().Err(err).Str("k.Service", k.Service).Msg("cannot retrieve the accounts")
 	}
-
+	
+	var accounts []string
+	lines := strings.Split(string(output), "\n")
+	
+	for _, line := range lines {
+		// Look for lines containing our service and extract account names
+		if strings.Contains(line, fmt.Sprintf(`"svce"<blob>="%s"`, k.Service)) {
+			// Find the account name in the same keychain entry
+			for i, searchLine := range lines {
+				if searchLine == line {
+					// Look for the account line near this service line
+					for j := i - 5; j < i + 5 && j < len(lines) && j >= 0; j++ {
+						if strings.Contains(lines[j], `"acct"<blob>=`) {
+							// Extract account name from: "acct"<blob>="account_name"
+							start := strings.Index(lines[j], `"acct"<blob>="`) + 14
+							end := strings.LastIndex(lines[j], `"`)
+							if start < end && start > 13 {
+								account := lines[j][start:end]
+								accounts = append(accounts, account)
+							}
+							break
+						}
+					}
+					break
+				}
+			}
+		}
+	}
+	
 	return accounts
 }
 
 func (k *KeyChain) Delete(name string) {
 	log.Debug().Str("name", name).Msg("deleting keychain object")
 
-	err := keychain.DeleteGenericPasswordItem(k.Service, name)
+	cmd := exec.Command("security", "delete-generic-password", "-s", k.Service, "-a", name)
+	err := cmd.Run()
 	if err != nil {
 		log.Fatal().Err(err).Str("name", name).Msg("cannot delete item")
 	}
