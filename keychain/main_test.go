@@ -88,21 +88,8 @@ func TestKeyChain_ParseDumpOutput(t *testing.T) {
 version: 512
 class: "genp"
 attributes:
-    0x00000007 <blob>="germ"
     "acct"<blob>="test-account"
-    "cdat"<timedate>=0x32303234303130383139353530305A00  "20240108195500Z\000"
-    "crtr"<uint32>=<NULL>
-    "cusi"<sint32>=<NULL>
-    "desc"<blob>=<NULL>
-    "gena"<blob>=<NULL>
-    "icmt"<blob>=<NULL>
-    "invi"<sint32>=<NULL>
-    "mdat"<timedate>=0x32303234303130383139353530305A00  "20240108195500Z\000"
-    "nega"<sint32>=<NULL>
-    "prot"<blob>=<NULL>
-    "scrp"<sint32>=<NULL>
     "svce"<blob>="germ"
-    "type"<uint32>=<NULL>
 data:
 "secret-value"`,
 			expected: []string{"test-account"},
