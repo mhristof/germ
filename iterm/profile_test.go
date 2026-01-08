@@ -1,6 +1,7 @@
 package iterm
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -465,4 +466,171 @@ func TestProfileTree(t *testing.T) {
 	for _, test := range cases {
 		assert.Equal(t, test.profiles.ProfileTree(), test.out, test.name)
 	}
+}
+func TestProfiles_FindGUID(t *testing.T) {
+	profiles := Profiles{
+		Profiles: []Profile{
+			{GUID: "guid1", Name: "profile1"},
+			{GUID: "guid2", Name: "profile2"},
+			{GUID: "guid3", Name: "profile3"},
+		},
+	}
+
+	cases := []struct {
+		name     string
+		guid     string
+		expected bool
+		profile  string
+	}{
+		{
+			name:     "existing GUID",
+			guid:     "guid2",
+			expected: true,
+			profile:  "profile2",
+		},
+		{
+			name:     "non-existing GUID",
+			guid:     "nonexistent",
+			expected: false,
+			profile:  "",
+		},
+		{
+			name:     "empty GUID",
+			guid:     "",
+			expected: false,
+			profile:  "",
+		},
+	}
+
+	for _, test := range cases {
+		t.Run(test.name, func(t *testing.T) {
+			profile, found := profiles.FindGUID(test.guid)
+			assert.Equal(t, test.expected, found)
+			if found {
+				assert.Equal(t, test.profile, profile.Name)
+				assert.Equal(t, test.guid, profile.GUID)
+			}
+		})
+	}
+}
+
+func TestProfiles_Add(t *testing.T) {
+	profiles := Profiles{}
+	
+	profile1 := Profile{GUID: "guid1", Name: "profile1"}
+	profile2 := Profile{GUID: "guid2", Name: "profile2"}
+	
+	profiles.Add(profile1)
+	assert.Len(t, profiles.Profiles, 1)
+	assert.Equal(t, "profile1", profiles.Profiles[0].Name)
+	
+	profiles.Add(profile2)
+	assert.Len(t, profiles.Profiles, 2)
+	assert.Equal(t, "profile2", profiles.Profiles[1].Name)
+}
+
+func TestProfiles_ProfileTree(t *testing.T) {
+	profiles := Profiles{
+		Profiles: []Profile{
+			{GUID: "parent1", Name: "parent1"},
+			{GUID: "child1", Name: "child1", Tags: []string{"source-profile=parent1"}},
+			{GUID: "child2", Name: "child2", Tags: []string{"source-profile=parent1"}},
+			{GUID: "parent2", Name: "parent2"},
+			{GUID: "child3", Name: "child3", Tags: []string{"source-profile=parent2"}},
+			{GUID: "standalone", Name: "standalone"},
+		},
+	}
+
+	tree := profiles.ProfileTree()
+	
+	// Should have entries for parent1 and parent2
+	assert.Contains(t, tree, "parent1")
+	assert.Contains(t, tree, "parent2")
+	
+	// parent1 should have 2 children
+	assert.Len(t, tree["parent1"], 2)
+	assert.Contains(t, tree["parent1"], "child1")
+	assert.Contains(t, tree["parent1"], "child2")
+	
+	// parent2 should have 1 child
+	assert.Len(t, tree["parent2"], 1)
+	assert.Contains(t, tree["parent2"], "child3")
+	
+	// standalone profile should not appear in tree
+	assert.NotContains(t, tree, "standalone")
+}
+
+func TestProfile_ConfigDefaults(t *testing.T) {
+	profile := NewProfile("test", map[string]string{})
+	
+	// Test that default smart selection rules are added
+	assert.NotEmpty(t, profile.SmartSelectionRules)
+	
+	// Test default font
+	assert.Equal(t, "HackNFM-Regular 12", profile.NormalFont)
+	
+	// Test semantic history
+	assert.Contains(t, profile.SemanticHistory["action"], "command")
+	assert.Contains(t, profile.SemanticHistory["text"], "nvim-edit.py")
+}
+
+func TestColor(t *testing.T) {
+	color := Color{
+		AlphaComponent: 1.0,
+		BlueComponent:  0.5,
+		ColorSpace:     "sRGB",
+		GreenComponent: 0.3,
+		RedComponent:   0.7,
+	}
+	
+	// Test that color struct can be marshaled/unmarshaled
+	data, err := json.Marshal(color)
+	assert.NoError(t, err)
+	
+	var unmarshaled Color
+	err = json.Unmarshal(data, &unmarshaled)
+	assert.NoError(t, err)
+	assert.Equal(t, color, unmarshaled)
+}
+
+func TestTrigger(t *testing.T) {
+	trigger := Trigger{
+		Action:    "HighlightTrigger",
+		Parameter: "red",
+		Regex:     "ERROR",
+		Partial:   true,
+	}
+	
+	// Test that trigger can be marshaled/unmarshaled
+	data, err := json.Marshal(trigger)
+	assert.NoError(t, err)
+	
+	var unmarshaled Trigger
+	err = json.Unmarshal(data, &unmarshaled)
+	assert.NoError(t, err)
+	assert.Equal(t, trigger, unmarshaled)
+}
+
+func TestSmartSelectionRule(t *testing.T) {
+	rule := SmartSelectionRule{
+		Notes:     "Test rule",
+		Precision: "very_high",
+		Regex:     `\b\w+@\w+\.\w+\b`,
+		Actions: []SmartSelectionRuleAction{
+			{
+				Title:     "Open URL",
+				Action:    1,
+				Parameter: "",
+			},
+		},
+	}
+	
+	// Test that rule can be marshaled/unmarshaled
+	data, err := json.Marshal(rule)
+	assert.NoError(t, err)
+	
+	var unmarshaled SmartSelectionRule
+	err = json.Unmarshal(data, &unmarshaled)
+	assert.NoError(t, err)
+	assert.Equal(t, rule, unmarshaled)
 }
