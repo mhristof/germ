@@ -43,31 +43,75 @@ func Generate() []iterm.Profile {
 
 	// First pass: collect all profiles and prefer admin ones
 	allProfiles := ini.GetAll()
-	adminProfiles := make(map[string]map[string]string)
-	otherProfiles := make(map[string]map[string]string)
+	adminProfiles := make(map[string]string) // account-region -> profile name
+	otherProfiles := make(map[string]string)
+	profileConfigs := make(map[string]map[string]string) // profile name -> config
 	
-	// Separate admin and non-admin profiles
+	// Extract account-region key from profile names and group by permission level
 	for name, config := range allProfiles {
 		if name == "" || name == "default" {
 			continue
 		}
 		profile := strings.TrimPrefix(name, "profile ")
+		profileConfigs[profile] = config
 		
-		if strings.Contains(name, "AdministratorAccess") {
-			adminProfiles[profile] = config
+		// Extract account-region by removing the role part
+		var accountRegion string
+		if strings.Contains(profile, "AdministratorAccess") {
+			// account-prod-AdministratorAccess-ap-northeast-1 -> account-prod-ap-northeast-1
+			accountRegion = strings.Replace(profile, "-AdministratorAccess", "", 1)
+			adminProfiles[accountRegion] = profile
+		} else if strings.Contains(profile, "ReadOnlyAccess") {
+			// account-prod-ReadOnlyAccess-ap-northeast-1 -> account-prod-ap-northeast-1  
+			accountRegion = strings.Replace(profile, "-ReadOnlyAccess", "", 1)
+			if _, hasAdmin := adminProfiles[accountRegion]; !hasAdmin {
+				otherProfiles[accountRegion] = profile
+			}
 		} else {
-			otherProfiles[profile] = config
+			// For other roles, find the role part and remove it
+			// Pattern: account-{env}-{role}-{region}
+			parts := strings.Split(profile, "-")
+			if len(parts) < 4 {
+				continue
+			}
+			
+			// Find where the region starts (regions contain geographic indicators)
+			regionStartIdx := -1
+			for i := 2; i < len(parts); i++ { // Start from index 2 (after account-prod/test)
+				part := parts[i]
+				if strings.Contains(part, "east") || strings.Contains(part, "west") || 
+				   strings.Contains(part, "central") || strings.Contains(part, "north") ||
+				   strings.Contains(part, "south") || part == "eu" || part == "us" || 
+				   part == "ap" || part == "ca" || part == "sa" || part == "af" || part == "me" {
+					regionStartIdx = i
+					break
+				}
+			}
+			
+			if regionStartIdx == -1 {
+				continue
+			}
+			
+			// Reconstruct account-region: account + region parts
+			accountParts := parts[:2] // account-prod or account-test
+			regionParts := parts[regionStartIdx:] // region parts
+			accountRegion = strings.Join(accountParts, "-") + "-" + strings.Join(regionParts, "-")
+			
+			if _, hasAdmin := adminProfiles[accountRegion]; !hasAdmin {
+				otherProfiles[accountRegion] = profile
+			}
 		}
 	}
 	
 	// Use admin profiles where available, fall back to others
 	profilesToProcess := make(map[string]map[string]string)
-	for profile, config := range adminProfiles {
-		profilesToProcess[profile] = config
+	for _, profileName := range adminProfiles {
+		profilesToProcess[profileName] = profileConfigs[profileName]
 	}
-	for profile, config := range otherProfiles {
-		if _, hasAdmin := adminProfiles[profile]; !hasAdmin {
-			profilesToProcess[profile] = config
+	for accountRegion, profileName := range otherProfiles {
+		// Only add if we don't have an admin profile for this account-region
+		if _, hasAdmin := adminProfiles[accountRegion]; !hasAdmin {
+			profilesToProcess[profileName] = profileConfigs[profileName]
 		}
 	}
 
