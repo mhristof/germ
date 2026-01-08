@@ -153,6 +153,14 @@ func NewProfilesFromFile(path string) []Profile {
 }
 
 func NewProfile(name string, config map[string]string) *Profile {
+	prof := createBaseProfile(name, config)
+	applyConfigOverrides(&prof, config)
+	prof.Colors()
+	return &prof
+}
+
+// createBaseProfile creates a profile with default settings
+func createBaseProfile(name string, config map[string]string) Profile {
 	python3, err := exec.LookPath("python3")
 	if err != nil {
 		log.Fatal().Err(err).Msg("cannot find python3")
@@ -186,95 +194,168 @@ func NewProfile(name string, config map[string]string) *Profile {
 	}
 
 	prof.Tags = append(prof.Tags, uname)
+	return prof
+}
 
-	v, found := config["Command"]
-	if found {
+// applyConfigOverrides applies configuration overrides to the profile
+func applyConfigOverrides(prof *Profile, config map[string]string) {
+	applyCommandConfig(prof, config)
+	applyBadgeTextConfig(prof, config)
+	applyTitleSettingConfig(prof, config)
+	applyRegionConfig(prof, config)
+	applyInitialTextConfig(prof, config)
+}
+
+// applyCommandConfig handles command-related configuration
+func applyCommandConfig(prof *Profile, config map[string]string) {
+	// Handle "Command" key
+	if v, found := config["Command"]; found {
 		prof.Command = v
 		prof.CustomCommand = "Yes"
 	}
 
-	// viper doesnt support case sensitive options
-	v, found = config["command"]
-	if found {
+	// Handle "command" key (viper doesn't support case sensitive options)
+	if v, found := config["command"]; found {
 		prof.Command = v
 		prof.CustomCommand = "Yes"
 	}
+}
 
-	v, found = config["BadgeText"]
-	if found {
+// applyBadgeTextConfig handles badge text configuration
+func applyBadgeTextConfig(prof *Profile, config map[string]string) {
+	if v, found := config["BadgeText"]; found {
 		prof.BadgeText = v
 	}
+}
 
-	v, found = config["AllowTitleSetting"]
-	if found {
+// applyTitleSettingConfig handles title setting configuration
+func applyTitleSettingConfig(prof *Profile, config map[string]string) {
+	if v, found := config["AllowTitleSetting"]; found {
 		value, err := strconv.ParseBool(v)
 		if err != nil {
-			log.Fatal().Interface("v", v).Msg("cvalue is not convertable to bool")
+			log.Fatal().Interface("v", v).Msg("value is not convertible to bool")
 		}
-
 		prof.AllowTitleSetting = value
 	}
+}
 
-	v, found = config["region"]
-	if found {
+// applyRegionConfig handles AWS region configuration
+func applyRegionConfig(prof *Profile, config map[string]string) {
+	if v, found := config["region"]; found {
 		prof.Tags = append(prof.Tags, AWSRegionTags[v]...)
 	}
+}
 
-	v, found = config["Initial Text"]
-	if found {
+// applyInitialTextConfig handles initial text configuration
+func applyInitialTextConfig(prof *Profile, config map[string]string) {
+	if v, found := config["Initial Text"]; found {
 		prof.InitialText = v
 	}
-
-	prof.Colors()
-	return &prof
 }
 
 func Tags(c map[string]string) []string {
-	tags := []string{}
-
-	tsValue, ok := c["timestamps"]
-	b, err := strconv.ParseBool(tsValue)
-	if !ok || (err == nil && b) {
-		tags = append(tags, time.Now().Format(time.RFC3339))
+	var tags []string
+	
+	tags = append(tags, getTimestampTags(c)...)
+	tags = append(tags, getAccountTags(c)...)
+	tags = append(tags, getSourceProfileTags(c)...)
+	tags = append(tags, getRoleArnTags(c)...)
+	tags = append(tags, getAzureTags(c)...)
+	tags = append(tags, getCustomTags(c)...)
+	
+	// Ensure we always return a slice, never nil
+	if tags == nil {
+		return []string{}
 	}
-
-	if account, ok := c["sso_account_id"]; ok == true {
-		tags = append(tags, fmt.Sprintf("account=%s", account))
-	}
-
-	v, found := c["source_profile"]
-	if found {
-		tags = append(tags, fmt.Sprintf("source-profile=%s", v))
-		tags = append(tags, v)
-	}
-
-	if roleArn, ok := c["role_arn"]; ok == true {
-		parts := strings.Split(roleArn, ":")
-		tags = append(tags, parts[4])
-	}
-
-	v, found = c["azure_app_id_uri"]
-	if found {
-		parts := strings.Split(v, "#")
-		tags = append(tags, parts[1])
-	}
-
-	v, found = c["azure_default_role_arn"]
-	if found {
-		parts := strings.Split(v, ":")
-		tags = append(tags, parts[5])
-	}
-
-	cTags, found := c["Tags"]
-	if found {
-		tags = append(tags, strings.Split(cTags, ",")...)
-	}
-
+	
 	return tags
 }
 
+// getTimestampTags adds timestamp tags if enabled
+func getTimestampTags(c map[string]string) []string {
+	tsValue, ok := c["timestamps"]
+	b, err := strconv.ParseBool(tsValue)
+	if !ok || (err == nil && b) {
+		return []string{time.Now().Format(time.RFC3339)}
+	}
+	return []string{}
+}
+
+// getAccountTags adds AWS account-related tags
+func getAccountTags(c map[string]string) []string {
+	if account, ok := c["sso_account_id"]; ok {
+		return []string{fmt.Sprintf("account=%s", account)}
+	}
+	return []string{}
+}
+
+// getSourceProfileTags adds source profile tags
+func getSourceProfileTags(c map[string]string) []string {
+	if v, found := c["source_profile"]; found {
+		return []string{
+			fmt.Sprintf("source-profile=%s", v),
+			v,
+		}
+	}
+	return []string{}
+}
+
+// getRoleArnTags extracts and adds role ARN tags
+func getRoleArnTags(c map[string]string) []string {
+	if roleArn, ok := c["role_arn"]; ok {
+		parts := strings.Split(roleArn, ":")
+		if len(parts) > 4 {
+			return []string{parts[4]}
+		}
+	}
+	return []string{}
+}
+
+// getAzureTags adds Azure-related tags
+func getAzureTags(c map[string]string) []string {
+	var tags []string
+	
+	// Azure app ID URI tags
+	if v, found := c["azure_app_id_uri"]; found {
+		parts := strings.Split(v, "#")
+		if len(parts) > 1 {
+			tags = append(tags, parts[1])
+		}
+	}
+	
+	// Azure default role ARN tags
+	if v, found := c["azure_default_role_arn"]; found {
+		parts := strings.Split(v, ":")
+		if len(parts) > 5 {
+			tags = append(tags, parts[5])
+		}
+	}
+	
+	// Always return a slice, even if empty
+	if tags == nil {
+		return []string{}
+	}
+	
+	return tags
+}
+
+// getCustomTags adds user-defined custom tags
+func getCustomTags(c map[string]string) []string {
+	if cTags, found := c["Tags"]; found {
+		return strings.Split(cTags, ",")
+	}
+	return []string{}
+}
+
 func CreateKeyboardMap(name string, config map[string]string) map[string]KeyboardMap {
-	maps := map[string]KeyboardMap{
+	maps := createDefaultKeyboardMaps()
+	addProfileSpecificKeyboardMaps(maps, config)
+	return maps
+}
+
+// createDefaultKeyboardMaps creates the standard keyboard shortcuts for all profiles
+func createDefaultKeyboardMaps() map[string]KeyboardMap {
+	return map[string]KeyboardMap{
 		"0x5f-0x120000": {
 			Action: 25,
 			Text:   "Split Horizontally with Current Profile\nSplit Horizontally with Current Profile",
@@ -284,25 +365,26 @@ func CreateKeyboardMap(name string, config map[string]string) map[string]Keyboar
 			Text:   "Split Vertically with Current Profile\nSplit Vertically with Current Profile",
 		},
 	}
+}
 
-	v, found := config["source_profile"]
-	if found {
+// addProfileSpecificKeyboardMaps adds profile-specific keyboard shortcuts based on configuration
+func addProfileSpecificKeyboardMaps(maps map[string]KeyboardMap, config map[string]string) {
+	// Add source profile shortcut
+	if v, found := config["source_profile"]; found {
 		maps[KeyboardSortcutAltA] = KeyboardMap{
 			Action: 28,
 			Text:   fmt.Sprintf("login-%s", v),
 		}
 	}
 
-	_, found = config["sso_account_id"]
-	if found {
+	// Add SSO login shortcut
+	if _, found := config["sso_account_id"]; found {
 		maps[KeyboardSortcutAltA] = KeyboardMap{
 			Version: 1,
 			Action:  12,
 			Text:    "aws sso login",
 		}
 	}
-
-	return maps
 }
 
 func (p *Profiles) UpdateAWSSmartSelectionRules() {

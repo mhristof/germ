@@ -256,3 +256,114 @@ func TestRegionDetection(t *testing.T) {
 		})
 	}
 }
+
+func TestCreateAWSClients(t *testing.T) {
+	// This test would require AWS credentials, so we'll just test the structure
+	t.Run("creates clients successfully", func(t *testing.T) {
+		// AWS SDK allows creating clients with any profile name
+		// The error only occurs when making actual API calls
+		clients, err := createAWSClients("test-profile")
+		assert.NoError(t, err)
+		assert.NotNil(t, clients)
+		assert.NotNil(t, clients.SSM)
+		assert.NotNil(t, clients.EC2)
+		assert.NotNil(t, clients.IAM)
+		assert.NotNil(t, clients.STS)
+	})
+}
+
+func TestShouldSkipInstance(t *testing.T) {
+	existingIDs := map[string]string{
+		"i-123": "instance1",
+		"i-456": "instance2",
+	}
+
+	cases := []struct {
+		name       string
+		instanceID string
+		expected   bool
+	}{
+		{
+			name:       "skip existing instance",
+			instanceID: "i-123",
+			expected:   true,
+		},
+		{
+			name:       "don't skip new instance",
+			instanceID: "i-789",
+			expected:   false,
+		},
+	}
+
+	for _, test := range cases {
+		t.Run(test.name, func(t *testing.T) {
+			result := shouldSkipInstance(test.instanceID, existingIDs)
+			assert.Equal(t, test.expected, result)
+		})
+	}
+}
+
+func TestShouldSkipASGInstance(t *testing.T) {
+	cases := []struct {
+		name     string
+		instance InstanceInfo
+		asgs     map[string]string
+		expected bool
+	}{
+		{
+			name: "don't skip non-ASG instance",
+			instance: InstanceInfo{
+				ID:      "i-123",
+				ASGName: "",
+			},
+			asgs:     map[string]string{},
+			expected: false,
+		},
+		{
+			name: "don't skip first ASG instance",
+			instance: InstanceInfo{
+				ID:      "i-123",
+				ASGName: "my-asg",
+			},
+			asgs:     map[string]string{},
+			expected: false,
+		},
+		{
+			name: "skip duplicate ASG instance",
+			instance: InstanceInfo{
+				ID:      "i-456",
+				ASGName: "my-asg",
+			},
+			asgs: map[string]string{
+				"my-asg": "i-123",
+			},
+			expected: true,
+		},
+	}
+
+	for _, test := range cases {
+		t.Run(test.name, func(t *testing.T) {
+			result := shouldSkipASGInstance(&test.instance, test.asgs)
+			assert.Equal(t, test.expected, result)
+		})
+	}
+}
+
+func TestCreateSSMProfile(t *testing.T) {
+	instance := InstanceInfo{
+		ID:      "i-123",
+		Name:    "test-instance",
+		ASGName: "test-asg",
+	}
+
+	accountInfo := &AccountInfo{
+		ID:    "123456789",
+		Alias: "test-account",
+	}
+
+	profile := createSSMProfile(instance, "test-profile", "us-east-1", accountInfo)
+
+	assert.Equal(t, "test-account:us-east-1:ssm-test-instance", profile.Name)
+	assert.Contains(t, profile.InitialText, "AWS_PROFILE=test-profile ssm test-instance")
+	assert.Contains(t, profile.KeyboardMap, "0x61-0x80000")
+}
