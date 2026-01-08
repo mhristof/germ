@@ -41,11 +41,37 @@ func Generate() []iterm.Profile {
 
 	failedProfiles := []string{}
 
-	for name, config := range ini.GetAll() {
+	// First pass: collect all profiles and prefer admin ones
+	allProfiles := ini.GetAll()
+	adminProfiles := make(map[string]map[string]string)
+	otherProfiles := make(map[string]map[string]string)
+	
+	// Separate admin and non-admin profiles
+	for name, config := range allProfiles {
 		if name == "" || name == "default" {
 			continue
 		}
 		profile := strings.TrimPrefix(name, "profile ")
+		
+		if strings.Contains(name, "AdministratorAccess") {
+			adminProfiles[profile] = config
+		} else {
+			otherProfiles[profile] = config
+		}
+	}
+	
+	// Use admin profiles where available, fall back to others
+	profilesToProcess := make(map[string]map[string]string)
+	for profile, config := range adminProfiles {
+		profilesToProcess[profile] = config
+	}
+	for profile, config := range otherProfiles {
+		if _, hasAdmin := adminProfiles[profile]; !hasAdmin {
+			profilesToProcess[profile] = config
+		}
+	}
+
+	for profile, config := range profilesToProcess {
 		region := config["region"]
 
 		log.Trace().Str("profile", profile).Str("region", region).Msg("searching")
