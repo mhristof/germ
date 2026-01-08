@@ -46,15 +46,30 @@ func TestAdd(t *testing.T) {
 	}
 
 	for _, test := range cases {
-		var prof iterm.Profiles
+		profiles := []iterm.Profile{}
 		for i, cfg := range test.config {
-			add(&prof, "", fmt.Sprintf("%d", i), cfg)
+			name := fmt.Sprintf("%d", i)
+			
+			// Create main profile
+			mainProfile := createAWSProfile("", name, cfg)
+			profiles = append(profiles, *mainProfile)
+			
+			// Create login profile if needed
+			if loginProfile := createLoginProfile(name, cfg); loginProfile != nil {
+				profiles = append(profiles, *loginProfile)
+			}
 		}
 
-		assert.Equal(t, len(test.expected), len(prof.Profiles))
+		assert.Equal(t, len(test.expected), len(profiles))
 
-		for _, profile := range test.expected {
-			_, found := prof.FindGUID(profile.GUID)
+		for _, expectedProfile := range test.expected {
+			found := false
+			for _, profile := range profiles {
+				if profile.GUID == expectedProfile.GUID {
+					found = true
+					break
+				}
+			}
 			assert.True(t, found)
 		}
 

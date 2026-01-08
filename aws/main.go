@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"os/user"
 	"path/filepath"
 	"strings"
 
 	"github.com/mhristof/germ/iterm"
+	"github.com/mhristof/germ/profile"
 	"github.com/rs/zerolog/log"
 	"github.com/zieckey/goini"
 )
@@ -21,51 +21,72 @@ func Profiles(prefix, config string) []iterm.Profile {
 		return nil
 	}
 
-	var prof iterm.Profiles
+	var profiles []iterm.Profile
 	for name, section := range ini.GetAll() {
 		if name == "" {
 			continue
 		}
 		tName := strings.TrimPrefix(name, "profile ")
-		add(&prof, prefix, tName, section)
+		
+		// Create main profile
+		mainProfile := createAWSProfile(prefix, tName, section)
+		profiles = append(profiles, *mainProfile)
+		
+		// Create login profile if needed
+		if loginProfile := createLoginProfile(tName, section); loginProfile != nil {
+			profiles = append(profiles, *loginProfile)
+		}
 	}
 
-	return prof.Profiles
+	return profiles
 }
 
-func add(p *iterm.Profiles, prefix, name string, config map[string]string) {
-	user, err := user.Current()
-	if err != nil {
-		log.Fatal().Err(err).Msg("cannot find current user")
+func createAWSProfile(prefix, name string, config map[string]string) *iterm.Profile {
+	builder := profile.NewAWSProfileBuilder(name).
+		WithAWSProfile(name).
+		WithPrefix(prefix)
+	
+	// Add any additional config from the section
+	for key, value := range config {
+		builder.WithConfig(key, value)
 	}
+	
+	return builder.Build()
+}
 
-	config["Command"] = fmt.Sprintf("/usr/bin/env AWS_PROFILE=%s /usr/bin/login -fp %s", name, user.Username)
-	pName := name
-
-	if prefix != "" {
-		pName = fmt.Sprintf("%s-%s", prefix, name)
-	}
-
-	profile := iterm.NewProfile(pName, config)
-	p.Add(*profile)
-
+func createLoginProfile(name string, config map[string]string) *iterm.Profile {
 	_, sourceProfile := config["source_profile"]
 	_, sso := config["sso_account_id"]
 
-	if !sourceProfile && !sso {
-		config["Command"] = loginCmd(name, config)
-		loginProfile := iterm.NewProfile(fmt.Sprintf("login-%s", name), config)
-
-		log.Debug().
-			Str("profile.GUID", profile.GUID).
-			Str("loginProfile.GUID", loginProfile.GUID).
-			Msg("create login profile")
-
-		p.Add(*loginProfile)
+	// Only create login profile if it's not a source profile or SSO profile
+	if sourceProfile || sso {
+		return nil
 	}
+	
+	loginCmd := buildLoginCommand(name, config)
+	if loginCmd == "" {
+		// If no specific login command, create a basic login profile
+		// This maintains compatibility with the original behavior
+		loginCmd = fmt.Sprintf("echo 'No login command configured for %s'", name)
+	}
+	
+	builder := profile.NewAWSProfileBuilder(fmt.Sprintf("login-%s", name)).
+		WithAWSLoginCommand(name, loginCmd)
+	
+	// Add any additional config from the section
+	for key, value := range config {
+		builder.WithConfig(key, value)
+	}
+	
+	log.Debug().
+		Str("profile", name).
+		Str("loginProfile", fmt.Sprintf("login-%s", name)).
+		Msg("create login profile")
+	
+	return builder.Build()
 }
 
-func loginCmd(name string, config map[string]string) string {
+func buildLoginCommand(name string, config map[string]string) string {
 	var tool, toolCmd string
 	_, azure := config["azure_tenant_id"]
 	_, ssoAccountId := config["sso_account_id"]

@@ -2,7 +2,6 @@ package ssm
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"strings"
 	"sync"
@@ -13,6 +12,7 @@ import (
 	awsssm "github.com/aws/aws-sdk-go-v2/service/ssm"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
 	"github.com/mhristof/germ/iterm"
+	profilebuilder "github.com/mhristof/germ/profile"
 	"github.com/rs/zerolog/log"
 	"github.com/zieckey/goini"
 )
@@ -115,19 +115,19 @@ func Generate() []iterm.Profile {
 		}
 	}
 
-	for profile, config := range profilesToProcess {
+	for profileName, config := range profilesToProcess {
 		region := config["region"]
 
-		log.Trace().Str("profile", profile).Str("region", region).Msg("searching")
+		log.Trace().Str("profile", profileName).Str("region", region).Msg("searching")
 
 		wg.Add(1)
-		go func() {
+		go func(pName, reg string) {
 			defer wg.Done()
 
-			profiles, profileInstances := generateForProfile(profile, region, instances)
+			profiles, profileInstances := generateForProfile(pName, reg, instances)
 
 			if len(profiles) == 0 {
-				failedProfiles = append(failedProfiles, profile)
+				failedProfiles = append(failedProfiles, pName)
 				return
 			}
 
@@ -136,12 +136,12 @@ func Generate() []iterm.Profile {
 
 			ret = append(ret, profiles...)
 
-			log.Debug().Str("profile", profile).Str("region", region).Int("count", len(profiles)).Msg("Generated profiles")
+			log.Debug().Str("profile", pName).Str("region", reg).Int("count", len(profiles)).Msg("Generated profiles")
 
 			for k, v := range profileInstances {
 				instances[k] = v
 			}
-		}()
+		}(profileName, region)
 	}
 
 	wg.Wait()
@@ -260,25 +260,16 @@ func generateForProfile(profile, region string, instanceIDs map[string]string) (
 				continue
 			}
 
-			tags := fmt.Sprintf("AWS, %s", accountAlias) + ",account=" + *accountID.Account
-			if regionTags, ok := iterm.AWSRegionTags[region]; ok {
-				if len(regionTags) > 2 {
-					tags += ",region_id=" + regionTags[2]
-				}
+			// Use ProfileBuilder to create SSM profile
+			var regionTags []string
+			if tags, ok := iterm.AWSRegionTags[region]; ok {
+				regionTags = tags
 			}
-			bashCommand := fmt.Sprintf("bash -c 'AWS_PROFILE=%s ssm %s'", profile, name)
-			config := map[string]string{
-				"Initial Text":   bashCommand,
-				"Custom Command": "No",
-				"Tags":           tags,
-			}
-
-			newProfile := iterm.NewProfile(fmt.Sprintf("%s:%s:ssm-%s", accountAlias, region, name), config)
-
-			newProfile.KeyboardMap[iterm.KeyboardSortcutAltA] = iterm.KeyboardMap{
-				Action: iterm.KeyboardSendText,
-				Text:   fmt.Sprintf("AWS_PROFILE=%s aws sso login && %s\n", profile, bashCommand),
-			}
+			
+			newProfile := profilebuilder.NewSSMProfileBuilder(accountAlias, region, name).
+				WithSSMCommand(profile, name).
+				WithAWSAccountInfo(accountAlias, *accountID.Account, region, regionTags).
+				Build()
 
 			ret = append(ret, *newProfile)
 

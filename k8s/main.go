@@ -6,13 +6,13 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os/exec"
-	"os/user"
 	"path/filepath"
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/eks"
 	"github.com/mhristof/germ/iterm"
+	"github.com/mhristof/germ/profile"
 	"github.com/rs/zerolog/log"
 	"gopkg.in/yaml.v2"
 )
@@ -135,28 +135,17 @@ func (k *KubeConfig) Profile(path string) *iterm.Profile {
 		log.Fatal().Int("len(k.Clusters)", len(k.Clusters)).Msg("cannot handle multiple cluster definitions")
 	}
 
-	tags := map[string]string{
-		"Tags": "k8s",
-	}
-	cmd := fmt.Sprintf("/usr/bin/env KUBECONFIG=%s", path)
-
 	name := filepath.Base(k.Clusters[0].Name)
 	awsProfile := k.AWSProfile()
+	
+	builder := profile.NewK8sProfileBuilder(name).
+		WithKubeConfig(path)
+	
 	if awsProfile != "" {
-		cmd = fmt.Sprintf("%s AWS_PROFILE=%s", cmd, awsProfile)
-		tags["Tags"] += ",aws-profile=" + awsProfile
+		builder.WithAWSProfile(awsProfile)
 	}
-
-	user, err := user.Current()
-	if err != nil {
-		log.Fatal().Err(err).Msg("cannot find current user")
-	}
-
-	cmd = fmt.Sprintf("%s /usr/bin/login -fp %s", cmd, user.Username)
-	tags["Command"] = cmd
-	prof := iterm.NewProfile(fmt.Sprintf("k8s-%s", name), tags)
-
-	return prof
+	
+	return builder.Build()
 }
 
 func (k *KubeConfig) AWSProfile() string {

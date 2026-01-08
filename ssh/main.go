@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/mhristof/germ/iterm"
+	"github.com/mhristof/germ/profile"
 	"github.com/rs/zerolog/log"
 )
 
@@ -21,16 +22,21 @@ func Profiles() []iterm.Profile {
 	}
 
 	var ret []iterm.Profile
+	var lastProfile *iterm.Profile
 
 	for _, line := range strings.Split(string(data), "\n") {
-		if strings.Contains(line, "RemoteCommand tmux") {
-			profile := ret[len(ret)-1]
-			profile.KeyboardMap["0x77-0x100000-0xd"] = iterm.KeyboardMap{
-				Action: 25,
-				Text:   "Detach\ntmux.Detach",
-			}
-
-			log.Debug().Str("line", line).Str("profile", profile.Name).Msg("found tmux for profile")
+		// Handle tmux configuration for the last created profile
+		if strings.Contains(line, "RemoteCommand tmux") && lastProfile != nil {
+			// Update the last profile with tmux detach shortcut
+			updatedProfile := profile.NewSSHProfileBuilder(lastProfile.Name).
+				WithSSHCommand(lastProfile.Name).
+				WithTmuxDetach().
+				Build()
+			
+			// Replace the last profile with the updated one
+			ret[len(ret)-1] = *updatedProfile
+			
+			log.Debug().Str("line", line).Str("profile", lastProfile.Name).Msg("found tmux for profile")
 		}
 
 		if !strings.HasPrefix(line, "Host ") {
@@ -45,26 +51,19 @@ func Profiles() []iterm.Profile {
 
 		if len(fields) != 2 {
 			log.Debug().Interface("fields", fields).Msg("more fields than expected")
-
 			continue
 		}
 
 		host := fields[1]
-		p := iterm.NewProfile(host, map[string]string{
-			"Command": fmt.Sprintf("ssh %s", host),
-		})
+		hostIPAddr := hostIP(config, host)
+		
+		sshProfile := profile.NewSSHProfileBuilder(host).
+			WithSSHCommand(host).
+			WithHostIP(hostIPAddr).
+			Build()
 
-		if strings.HasSuffix(host, "-tmux") {
-			// prettyP, _ := json.MarshalIndent(p, "", "  ")
-			// fmt.Println(string(prettyP))
-		}
-
-		p.Tags = []string{
-			"ssh",
-			hostIP(config, host),
-		}
-
-		ret = append(ret, *p)
+		ret = append(ret, *sshProfile)
+		lastProfile = sshProfile
 	}
 
 	return ret
