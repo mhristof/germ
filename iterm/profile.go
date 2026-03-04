@@ -43,6 +43,25 @@ type Profile struct {
 	UnlimitedScrollback     bool                   `json:"Unlimited Scrollback"`
 	BackgroundColor         Color                  `json:"Background Color"`
 	ForegroundColor         Color                  `json:"Foreground Color"`
+	CursorColor             Color                  `json:"Cursor Color"`
+	CursorTextColor         Color                  `json:"Cursor Text Color"`
+	MinimumContrast         float64                `json:"Minimum Contrast"`
+	Ansi0Color              Color                  `json:"Ansi 0 Color"`
+	Ansi1Color              Color                  `json:"Ansi 1 Color"`
+	Ansi2Color              Color                  `json:"Ansi 2 Color"`
+	Ansi3Color              Color                  `json:"Ansi 3 Color"`
+	Ansi4Color              Color                  `json:"Ansi 4 Color"`
+	Ansi5Color              Color                  `json:"Ansi 5 Color"`
+	Ansi6Color              Color                  `json:"Ansi 6 Color"`
+	Ansi7Color              Color                  `json:"Ansi 7 Color"`
+	Ansi8Color              Color                  `json:"Ansi 8 Color"`
+	Ansi9Color              Color                  `json:"Ansi 9 Color"`
+	Ansi10Color             Color                  `json:"Ansi 10 Color"`
+	Ansi11Color             Color                  `json:"Ansi 11 Color"`
+	Ansi12Color             Color                  `json:"Ansi 12 Color"`
+	Ansi13Color             Color                  `json:"Ansi 13 Color"`
+	Ansi14Color             Color                  `json:"Ansi 14 Color"`
+	Ansi15Color             Color                  `json:"Ansi 15 Color"`
 	BoundHosts              []string               `json:"Bound Hosts,omitempty"`
 	NormalFont              string                 `json:"Normal Font"`
 	Transparency            int                    `json:"Transparency"`
@@ -515,9 +534,60 @@ func (p *Profile) Colors() {
 	p.ForegroundColor.BlueComponent = 1
 	p.ForegroundColor.AlphaComponent = 1
 
+	// Set bright yellow/green cursor for visibility
+	p.CursorColor.ColorSpace = "sRGB"
+	p.CursorColor.RedComponent = 0.5
+	p.CursorColor.GreenComponent = 1
+	p.CursorColor.BlueComponent = 0
+	p.CursorColor.AlphaComponent = 1
+
+	// Set black text inside cursor
+	p.CursorTextColor.ColorSpace = "sRGB"
+	p.CursorTextColor.RedComponent = 0
+	p.CursorTextColor.GreenComponent = 0
+	p.CursorTextColor.BlueComponent = 0
+	p.CursorTextColor.AlphaComponent = 1
+
+	// Minimum contrast ensures text is always readable against background
+	p.MinimumContrast = 0.5
+
+	// Set ANSI colors (bright palette for dark backgrounds)
+	// Ansi 0 - Black
+	p.Ansi0Color = Color{ColorSpace: "sRGB", RedComponent: 0.3, GreenComponent: 0.3, BlueComponent: 0.3, AlphaComponent: 1}
+	// Ansi 1 - Red
+	p.Ansi1Color = Color{ColorSpace: "sRGB", RedComponent: 1, GreenComponent: 0.4, BlueComponent: 0.4, AlphaComponent: 1}
+	// Ansi 2 - Green (bright for visibility)
+	p.Ansi2Color = Color{ColorSpace: "sRGB", RedComponent: 0.4, GreenComponent: 1, BlueComponent: 0.4, AlphaComponent: 1}
+	// Ansi 3 - Yellow (bright)
+	p.Ansi3Color = Color{ColorSpace: "sRGB", RedComponent: 1, GreenComponent: 1, BlueComponent: 0.4, AlphaComponent: 1}
+	// Ansi 4 - Blue (bright)
+	p.Ansi4Color = Color{ColorSpace: "sRGB", RedComponent: 0.5, GreenComponent: 0.7, BlueComponent: 1, AlphaComponent: 1}
+	// Ansi 5 - Magenta
+	p.Ansi5Color = Color{ColorSpace: "sRGB", RedComponent: 1, GreenComponent: 0.5, BlueComponent: 1, AlphaComponent: 1}
+	// Ansi 6 - Cyan
+	p.Ansi6Color = Color{ColorSpace: "sRGB", RedComponent: 0.4, GreenComponent: 1, BlueComponent: 1, AlphaComponent: 1}
+	// Ansi 7 - White
+	p.Ansi7Color = Color{ColorSpace: "sRGB", RedComponent: 1, GreenComponent: 1, BlueComponent: 1, AlphaComponent: 1}
+	// Ansi 8 - Bright Black (gray)
+	p.Ansi8Color = Color{ColorSpace: "sRGB", RedComponent: 0.6, GreenComponent: 0.6, BlueComponent: 0.6, AlphaComponent: 1}
+	// Ansi 9 - Bright Red
+	p.Ansi9Color = Color{ColorSpace: "sRGB", RedComponent: 1, GreenComponent: 0.5, BlueComponent: 0.5, AlphaComponent: 1}
+	// Ansi 10 - Bright Green
+	p.Ansi10Color = Color{ColorSpace: "sRGB", RedComponent: 0.6, GreenComponent: 1, BlueComponent: 0.6, AlphaComponent: 1}
+	// Ansi 11 - Bright Yellow
+	p.Ansi11Color = Color{ColorSpace: "sRGB", RedComponent: 1, GreenComponent: 1, BlueComponent: 0.6, AlphaComponent: 1}
+	// Ansi 12 - Bright Blue
+	p.Ansi12Color = Color{ColorSpace: "sRGB", RedComponent: 0.7, GreenComponent: 0.85, BlueComponent: 1, AlphaComponent: 1}
+	// Ansi 13 - Bright Magenta
+	p.Ansi13Color = Color{ColorSpace: "sRGB", RedComponent: 1, GreenComponent: 0.7, BlueComponent: 1, AlphaComponent: 1}
+	// Ansi 14 - Bright Cyan
+	p.Ansi14Color = Color{ColorSpace: "sRGB", RedComponent: 0.6, GreenComponent: 1, BlueComponent: 1, AlphaComponent: 1}
+	// Ansi 15 - Bright White
+	p.Ansi15Color = Color{ColorSpace: "sRGB", RedComponent: 1, GreenComponent: 1, BlueComponent: 1, AlphaComponent: 1}
+
 	if isProd(p.Name) {
 		p.BackgroundColor.ColorSpace = "sRGB"
-		p.BackgroundColor.RedComponent = 0.217376708984375
+		p.BackgroundColor.RedComponent = 0.25
 		p.BackgroundColor.GreenComponent = 0
 		p.BackgroundColor.BlueComponent = 0
 		p.BackgroundColor.AlphaComponent = 1
