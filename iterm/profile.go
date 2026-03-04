@@ -42,6 +42,7 @@ type Profile struct {
 	Triggers                []Trigger              `json:"Triggers"`
 	UnlimitedScrollback     bool                   `json:"Unlimited Scrollback"`
 	BackgroundColor         Color                  `json:"Background Color"`
+	ForegroundColor         Color                  `json:"Foreground Color"`
 	BoundHosts              []string               `json:"Bound Hosts,omitempty"`
 	NormalFont              string                 `json:"Normal Font"`
 	Transparency            int                    `json:"Transparency"`
@@ -507,6 +508,13 @@ func isProd(name string) bool {
 }
 
 func (p *Profile) Colors() {
+	// Set white foreground text for all profiles
+	p.ForegroundColor.ColorSpace = "sRGB"
+	p.ForegroundColor.RedComponent = 1
+	p.ForegroundColor.GreenComponent = 1
+	p.ForegroundColor.BlueComponent = 1
+	p.ForegroundColor.AlphaComponent = 1
+
 	if isProd(p.Name) {
 		p.BackgroundColor.ColorSpace = "sRGB"
 		p.BackgroundColor.RedComponent = 0.217376708984375
