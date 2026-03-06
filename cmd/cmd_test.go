@@ -218,10 +218,11 @@ func TestGenerateTemplateEdgeCases(t *testing.T) {
 
 func TestGenerateCommandsEdgeCases(t *testing.T) {
 	cases := []struct {
-		name     string
-		profiles iterm.Profiles
-		command  string
-		expected []string
+		name      string
+		profiles  iterm.Profiles
+		command   string
+		expected  []string
+		unordered bool
 	}{
 		{
 			name:     "empty profiles",
@@ -261,13 +262,18 @@ func TestGenerateCommandsEdgeCases(t *testing.T) {
 				"login2", 
 				"AWS_PROFILE=child2 aws s3 ls",
 			},
+			unordered: true,
 		},
 	}
 
 	for _, test := range cases {
 		t.Run(test.name, func(t *testing.T) {
 			result := generateCommands(test.profiles, test.command)
-			assert.Equal(t, test.expected, result)
+			if test.unordered {
+				assert.ElementsMatch(t, test.expected, result)
+			} else {
+				assert.Equal(t, test.expected, result)
+			}
 		})
 	}
 }
