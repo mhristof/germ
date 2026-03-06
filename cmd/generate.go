@@ -126,6 +126,10 @@ var generateCmd = &cobra.Command{
 			if err != nil {
 				log.Fatal().Err(err).Msg("cannot write to file")
 			}
+
+			// Configure global iTerm settings
+			changes := iterm.ConfigureGlobalSettings()
+			iterm.PrintSettingsChanges(changes)
 		} else if diff {
 			curr, err := ioutil.ReadFile(output)
 			if err != nil {
