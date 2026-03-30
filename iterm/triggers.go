@@ -100,6 +100,11 @@ func Triggers(profile string) []Trigger {
 		// 	Parameter: "git push --set-upstream origin $(git rev-parse --abbrev-ref HEAD)",
 		// 	Regex:     "^To push the current branch and set the remote as upstream",
 		// },
+		{
+			Action:    "SendTextTrigger",
+			Parameter: "aws elbv2 modify-load-balancer-attributes --load-balancer-arn \\1 --attributes Key=deletion_protection.enabled,Value=false ; ",
+			Regex:     `Load balancer '(arn:aws:elasticloadbalancing:[^']+)' cannot be deleted because deletion protection is enabled`,
+		},
 	}...)
 }
 
