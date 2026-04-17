@@ -262,6 +262,7 @@ func applyTitleSettingConfig(prof *Profile, config map[string]string) {
 // applyRegionConfig handles AWS region configuration
 func applyRegionConfig(prof *Profile, config map[string]string) {
 	if v, found := config["region"]; found {
+		prof.Tags = append(prof.Tags, v)
 		prof.Tags = append(prof.Tags, AWSRegionTags[v]...)
 	}
 }
