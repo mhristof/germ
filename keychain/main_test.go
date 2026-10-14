@@ -2,7 +2,6 @@ package keychain
 
 import (
 	"fmt"
-	"strings"
 	"testing"
 
 	"github.com/mhristof/germ/iterm"
@@ -66,7 +65,7 @@ func TestKeyChain_Profiles(t *testing.T) {
 					assert.True(t, exists)
 					assert.Equal(t, int64(12), shortcut.Action)
 					
-					expectedText := fmt.Sprintf("eval $(/usr/bin/security find-generic-password  -s %s -w -a %s)", test.keychain.Service, account)
+					expectedText := loginCommand(test.keychain.Service, account)
 					assert.Equal(t, expectedText, shortcut.Text)
 				}
 			}
@@ -137,6 +136,31 @@ data:
 	}
 }
 
+func TestEnvVarName(t *testing.T) {
+	cases := []struct {
+		account  string
+		expected string
+	}{
+		{account: "grafana", expected: "GRAFANA"},
+		{account: "grafana_token", expected: "GRAFANA_TOKEN"},
+		{account: "grafana-token", expected: "GRAFANA_TOKEN"},
+		{account: "my.api.key", expected: "MY_API_KEY"},
+		{account: "ALREADY_UPPER", expected: "ALREADY_UPPER"},
+	}
+
+	for _, test := range cases {
+		t.Run(test.account, func(t *testing.T) {
+			assert.Equal(t, test.expected, envVarName(test.account))
+		})
+	}
+}
+
+func TestLoginCommand(t *testing.T) {
+	expected := `eval 'export GRAFANA="$(/usr/bin/security find-generic-password -s germ -w -a grafana)"'`
+
+	assert.Equal(t, expected, loginCommand("germ", "grafana"))
+}
+
 // mockKeyChain is a test double for KeyChain that doesn't interact with the actual keychain
 type mockKeyChain struct {
 	KeyChain
@@ -150,56 +174,13 @@ func (m *mockKeyChain) Profiles() []iterm.Profile {
 
 		prof.KeyboardMap[iterm.KeyboardSortcutAltA] = iterm.KeyboardMap{
 			Action: 12,
-			Text:   fmt.Sprintf("eval $(/usr/bin/security find-generic-password  -s %s -w -a %s)", m.Service, account),
+			Text:   loginCommand(m.Service, account),
 		}
 
 		ret = append(ret, *prof)
 	}
 
 	return ret
-}
-
-// parseKeychainDump extracts accounts from keychain dump output for testing
-func parseKeychainDump(service, output string) []string {
-	if output == "" {
-		return nil
-	}
-	
-	var accounts []string
-	lines := strings.Split(output, "\n")
-	
-	for i, line := range lines {
-		if strings.Contains(line, fmt.Sprintf(`"svce"<blob>="%s"`, service)) {
-			// Look for the account line near this service line
-			for j := i - 5; j < i + 5 && j < len(lines) && j >= 0; j++ {
-				if strings.Contains(lines[j], `"acct"<blob>=`) {
-					start := strings.Index(lines[j], `"acct"<blob>="`) + 14
-					end := strings.LastIndex(lines[j], `"`)
-					if start < end && start > 13 {
-						account := lines[j][start:end]
-						// Avoid duplicates
-						found := false
-						for _, existing := range accounts {
-							if existing == account {
-								found = true
-								break
-							}
-						}
-						if !found {
-							accounts = append(accounts, account)
-						}
-					}
-					break
-				}
-			}
-		}
-	}
-	
-	if len(accounts) == 0 {
-		return nil
-	}
-	
-	return accounts
 }
 
 func (m *mockKeyChain) List() []string {

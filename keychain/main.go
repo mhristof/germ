@@ -35,35 +35,65 @@ func (k *KeyChain) List() []string {
 	if err != nil {
 		log.Fatal().Err(err).Str("k.Service", k.Service).Msg("cannot retrieve the accounts")
 	}
-	
+
+	return parseKeychainDump(k.Service, string(output))
+}
+
+const (
+	acctPrefix = `"acct"<blob>="`
+	svcePrefix = `"svce"<blob>="`
+	entryStart = "class:"
+)
+
+// parseKeychainDump extracts the account names of every entry whose service
+// matches the given service from `security dump-keychain` output.
+//
+// The dump groups attributes per entry, with each entry starting at a `class:`
+// line. The `acct` and `svce` lines can appear in any order within an entry and
+// are not at a fixed distance from one another, so we accumulate both per entry
+// and emit the account once we know its service matches.
+func parseKeychainDump(service, output string) []string {
+	if output == "" {
+		return nil
+	}
+
+	svceLine := svcePrefix + service + `"`
+
 	var accounts []string
-	lines := strings.Split(string(output), "\n")
-	
-	for _, line := range lines {
-		// Look for lines containing our service and extract account names
-		if strings.Contains(line, fmt.Sprintf(`"svce"<blob>="%s"`, k.Service)) {
-			// Find the account name in the same keychain entry
-			for i, searchLine := range lines {
-				if searchLine == line {
-					// Look for the account line near this service line
-					for j := i - 5; j < i + 5 && j < len(lines) && j >= 0; j++ {
-						if strings.Contains(lines[j], `"acct"<blob>=`) {
-							// Extract account name from: "acct"<blob>="account_name"
-							start := strings.Index(lines[j], `"acct"<blob>="`) + 14
-							end := strings.LastIndex(lines[j], `"`)
-							if start < end && start > 13 {
-								account := lines[j][start:end]
-								accounts = append(accounts, account)
-							}
-							break
-						}
-					}
-					break
-				}
-			}
+	seen := map[string]bool{}
+
+	var account string
+	var serviceMatches bool
+
+	flush := func() {
+		if serviceMatches && account != "" && !seen[account] {
+			seen[account] = true
+			accounts = append(accounts, account)
+		}
+		account = ""
+		serviceMatches = false
+	}
+
+	for _, line := range strings.Split(output, "\n") {
+		trimmed := strings.TrimSpace(line)
+
+		if strings.HasPrefix(trimmed, entryStart) {
+			flush()
+			continue
+		}
+
+		if strings.HasPrefix(trimmed, acctPrefix) {
+			account = strings.TrimSuffix(strings.TrimPrefix(trimmed, acctPrefix), `"`)
+			continue
+		}
+
+		if trimmed == svceLine {
+			serviceMatches = true
 		}
 	}
-	
+
+	flush()
+
 	return accounts
 }
 
@@ -84,7 +114,7 @@ func (k *KeyChain) Profiles() []iterm.Profile {
 
 		prof.KeyboardMap[iterm.KeyboardSortcutAltA] = iterm.KeyboardMap{
 			Action: 12,
-			Text:   fmt.Sprintf("eval $(/usr/bin/security find-generic-password  -s %s -w -a %s)", k.Service, account),
+			Text:   loginCommand(k.Service, account),
 		}
 
 		ret = append(ret, *prof)
@@ -92,4 +122,35 @@ func (k *KeyChain) Profiles() []iterm.Profile {
 	}
 
 	return ret
+}
+
+// loginCommand builds the shortcut that, when evaluated, exports the raw token
+// stored in the keychain as an environment variable named after the account
+// (uppercased). The token itself is read at eval time, so only the raw secret
+// lives in the keychain, never the surrounding `export` wrapping.
+func loginCommand(service, account string) string {
+	variable := envVarName(account)
+
+	return fmt.Sprintf(
+		`eval 'export %s="$(/usr/bin/security find-generic-password -s %s -w -a %s)"'`,
+		variable, service, account,
+	)
+}
+
+// envVarName converts an account name into a valid shell environment variable
+// name: uppercased, with any character that is not a letter, digit or
+// underscore replaced by an underscore.
+func envVarName(account string) string {
+	var b strings.Builder
+
+	for _, r := range strings.ToUpper(account) {
+		switch {
+		case r >= 'A' && r <= 'Z', r >= '0' && r <= '9', r == '_':
+			b.WriteRune(r)
+		default:
+			b.WriteRune('_')
+		}
+	}
+
+	return b.String()
 }

@@ -13,7 +13,9 @@ var listCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		Verbose(cmd)
 
-		fmt.Println(keyChain.List())
+		for _, name := range keyChain.List() {
+			fmt.Println(name)
+		}
 	},
 }
 

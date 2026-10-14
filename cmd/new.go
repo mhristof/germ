@@ -16,15 +16,12 @@ import (
 )
 
 var (
-	newName     string
-	exportAlias string
-	value       string
-	file        string
-	keyChain    = keychain.KeyChain{
+	newName  string
+	file     string
+	keyChain = keychain.KeyChain{
 		Service:     "germ",
 		AccessGroup: "germ",
 	}
-	exported bool
 )
 
 var newCmd = &cobra.Command{
@@ -49,16 +46,9 @@ func findPassword(file string) string {
 		log.Fatal().Err(err).Msg("cannot read secret")
 	}
 
-	if exported {
-		value := fmt.Sprintf("export %s='%s'", strings.ToUpper(newName), string(bytePassword))
-
-		if exportAlias != "" {
-			value = fmt.Sprintf("%s %s='%s'", value, strings.ToUpper(exportAlias), string(bytePassword))
-		}
-
-		bytePassword = []byte(value)
-	}
-
+	// Store the raw secret only. The generated iTerm login shortcut builds the
+	// `export <NAME>='<secret>'` wrapping at eval time (see keychain.Profiles),
+	// so the keychain never holds the surrounding shell syntax.
 	return string(bytePassword)
 }
 
@@ -159,8 +149,6 @@ func exportAWS(access, secret string) string {
 func init() {
 	newCmd.Flags().StringVarP(&newName, "name", "", "", "Name of the profile")
 	newCmd.Flags().StringVarP(&file, "file", "f", "", "Credentials file to parse")
-	newCmd.Flags().BoolVarP(&exported, "export", "e", false, "Treat the password as an exported variable. The name of the variable will be the uppercased name provided.")
-	newCmd.Flags().StringVarP(&exportAlias, "alias", "a", "", "environment variable alias for the exported variable")
 	newCmd.MarkFlagRequired("name")
 
 	rootCmd.AddCommand(newCmd)
