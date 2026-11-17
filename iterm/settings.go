@@ -19,7 +19,7 @@ func ConfigureGlobalSettings() []string {
 	}
 
 	// Always show tab bar (HideTab: false = always show)
-	if configureDefault("HideTab", "0", "-bool") {
+	if configureDefault("HideTab", "false", "-bool") {
 		changed = append(changed, "Tab bar set to always visible")
 	}
 
