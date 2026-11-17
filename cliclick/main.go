@@ -17,7 +17,7 @@ func Profile() (iterm.Profile, error) {
 	}
 
 	p := iterm.NewProfile("cliclick", map[string]string{
-		"Command": fmt.Sprintf(`/usr/bin/env CLICLICK=%s /bin/sh -c 'while sleep 10; do "$CLICLICK" m:$("$CLICLICK" p); done'`, path),
+		"Command": fmt.Sprintf(`/usr/bin/env CLICLICK=%s /bin/sh -c 'echo "keeping the computer awake, ctrl+c to stop"; while sleep 10; do pos=$("$CLICLICK" p); "$CLICLICK" m:$pos; echo "$(date +%%Y-%%m-%%dT%%H:%%M:%%S) nudged mouse at $pos"; done'`, path),
 	})
 
 	p.KeyboardMap = map[string]iterm.KeyboardMap{

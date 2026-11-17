@@ -55,7 +55,7 @@ func TestProfile(t *testing.T) {
 			assert.Equal(t, "cliclick", profile.Name)
 			assert.Equal(t, "Yes", profile.CustomCommand)
 			assert.Equal(t,
-				"/usr/bin/env CLICLICK="+cliclickPath+` /bin/sh -c 'while sleep 10; do "$CLICLICK" m:$("$CLICLICK" p); done'`,
+				"/usr/bin/env CLICLICK="+cliclickPath+` /bin/sh -c 'echo "keeping the computer awake, ctrl+c to stop"; while sleep 10; do pos=$("$CLICLICK" p); "$CLICLICK" m:$pos; echo "$(date +%Y-%m-%dT%H:%M:%S) nudged mouse at $pos"; done'`,
 				profile.Command,
 			)
 
