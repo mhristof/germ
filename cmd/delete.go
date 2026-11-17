@@ -14,6 +14,13 @@ var deleteCmd = &cobra.Command{
 	Aliases: []string{"del", "rm"},
 	Short:   "Delete a custom profile from the keychain",
 	Args:    cobra.MaximumNArgs(1),
+	ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		if len(args) > 0 {
+			return nil, cobra.ShellCompDirectiveNoFileComp
+		}
+
+		return completeProfiles(cmd, args, toComplete)
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 		Verbose(cmd)
 

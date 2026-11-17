@@ -18,6 +18,16 @@ var setDirCmd = &cobra.Command{
 	Aliases: []string{"dir"},
 	Short:   "Show or set the starting directory of a profile. Without a name, list the directories of all profiles",
 	Args:    cobra.MaximumNArgs(2),
+	ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		switch len(args) {
+		case 0:
+			return completeProfiles(cmd, args, toComplete)
+		case 1:
+			return nil, cobra.ShellCompDirectiveFilterDirs
+		default:
+			return nil, cobra.ShellCompDirectiveNoFileComp
+		}
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 		Verbose(cmd)
 
@@ -56,6 +66,22 @@ var setDirCmd = &cobra.Command{
 			}
 		}
 	},
+}
+
+// completeProfiles completes the keychain profile names, with their starting
+// directory as the description.
+func completeProfiles(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	var names []string
+	for _, item := range keyChain.Items() {
+		if item.Directory == "" {
+			names = append(names, item.Account)
+			continue
+		}
+
+		names = append(names, item.Account+"\t"+item.Directory)
+	}
+
+	return names, cobra.ShellCompDirectiveNoFileComp
 }
 
 func findItem(name string) (keychain.Item, bool) {
