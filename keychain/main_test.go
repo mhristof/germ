@@ -78,7 +78,7 @@ func TestKeyChain_ParseDumpOutput(t *testing.T) {
 		name     string
 		service  string
 		output   string
-		expected []string
+		expected []Item
 	}{
 		{
 			name:    "single account found",
@@ -91,7 +91,32 @@ attributes:
     "svce"<blob>="germ"
 data:
 "secret-value"`,
-			expected: []string{"test-account"},
+			expected: []Item{{Account: "test-account"}},
+		},
+		{
+			name:    "account with directory",
+			service: "germ",
+			output: `keychain: "/Users/test/Library/Keychains/login.keychain-db"
+version: 512
+class: "genp"
+attributes:
+    "acct"<blob>="test-account"
+    "icmt"<blob>="/Users/test/code"
+    "svce"<blob>="germ"
+class: "genp"
+attributes:
+    "acct"<blob>="other"
+    "icmt"<blob>="/Users/test/other"
+    "svce"<blob>="other-service"
+class: "genp"
+attributes:
+    "acct"<blob>="no-dir"
+    "icmt"<blob>=<NULL>
+    "svce"<blob>="germ"`,
+			expected: []Item{
+				{Account: "test-account", Directory: "/Users/test/code"},
+				{Account: "no-dir"},
+			},
 		},
 		{
 			name:    "multiple accounts",
@@ -111,7 +136,7 @@ attributes:
     "svce"<blob>="germ"
 data:
 "value2"`,
-			expected: []string{"account1", "account2"},
+			expected: []Item{{Account: "account1"}, {Account: "account2"}},
 		},
 		{
 			name:     "no matching service",
@@ -130,10 +155,28 @@ data:
 	for _, test := range cases {
 		t.Run(test.name, func(t *testing.T) {
 			k := &KeyChain{Service: test.service}
-			accounts := parseKeychainDump(k.Service, test.output)
-			assert.Equal(t, test.expected, accounts)
+			items := parseKeychainDump(k.Service, test.output)
+			assert.Equal(t, test.expected, items)
 		})
 	}
+}
+
+func TestProfile(t *testing.T) {
+	t.Run("without directory", func(t *testing.T) {
+		prof := profile("germ", Item{Account: "grafana"})
+
+		assert.Equal(t, "custom/grafana", prof.Name)
+		assert.Equal(t, "Recycle", prof.CustomDirectory)
+		assert.Empty(t, prof.WorkingDirectory)
+		assert.Equal(t, loginCommand("germ", "grafana"), prof.KeyboardMap[iterm.KeyboardSortcutAltA].Text)
+	})
+
+	t.Run("with directory", func(t *testing.T) {
+		prof := profile("germ", Item{Account: "grafana", Directory: "/Users/test/code"})
+
+		assert.Equal(t, "Yes", prof.CustomDirectory)
+		assert.Equal(t, "/Users/test/code", prof.WorkingDirectory)
+	})
 }
 
 func TestEnvVarName(t *testing.T) {

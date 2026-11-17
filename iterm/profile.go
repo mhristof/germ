@@ -30,6 +30,7 @@ type Profile struct {
 	CustomCommand           string                 `json:"Custom Command"`
 	InitialText             string                 `json:"Initial Text"`
 	CustomDirectory         string                 `json:"Custom Directory"`
+	WorkingDirectory        string                 `json:"Working Directory,omitempty"`
 	CustomWindowTitle       string                 `json:"Custom Window Title"`
 	FlashingBell            bool                   `json:"Flashing Bell"`
 	GUID                    string                 `json:"Guid"`
@@ -276,19 +277,19 @@ func applyInitialTextConfig(prof *Profile, config map[string]string) {
 
 func Tags(c map[string]string) []string {
 	var tags []string
-	
+
 	tags = append(tags, getTimestampTags(c)...)
 	tags = append(tags, getAccountTags(c)...)
 	tags = append(tags, getSourceProfileTags(c)...)
 	tags = append(tags, getRoleArnTags(c)...)
 	tags = append(tags, getAzureTags(c)...)
 	tags = append(tags, getCustomTags(c)...)
-	
+
 	// Ensure we always return a slice, never nil
 	if tags == nil {
 		return []string{}
 	}
-	
+
 	return tags
 }
 
@@ -335,7 +336,7 @@ func getRoleArnTags(c map[string]string) []string {
 // getAzureTags adds Azure-related tags
 func getAzureTags(c map[string]string) []string {
 	var tags []string
-	
+
 	// Azure app ID URI tags
 	if v, found := c["azure_app_id_uri"]; found {
 		parts := strings.Split(v, "#")
@@ -343,7 +344,7 @@ func getAzureTags(c map[string]string) []string {
 			tags = append(tags, parts[1])
 		}
 	}
-	
+
 	// Azure default role ARN tags
 	if v, found := c["azure_default_role_arn"]; found {
 		parts := strings.Split(v, ":")
@@ -351,12 +352,12 @@ func getAzureTags(c map[string]string) []string {
 			tags = append(tags, parts[5])
 		}
 	}
-	
+
 	// Always return a slice, even if empty
 	if tags == nil {
 		return []string{}
 	}
-	
+
 	return tags
 }
 

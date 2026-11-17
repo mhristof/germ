@@ -64,7 +64,8 @@ func init() {
 }
 
 func Execute() {
+	// cobra already prints the error and the usage.
 	if err := rootCmd.Execute(); err != nil {
-		log.Panic().Err(err).Msg("cannot execute command")
+		os.Exit(1)
 	}
 }

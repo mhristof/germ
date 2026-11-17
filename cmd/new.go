@@ -17,6 +17,7 @@ import (
 
 var (
 	newName  string
+	newDir   string
 	file     string
 	keyChain = keychain.KeyChain{
 		Service:     "germ",
@@ -32,6 +33,10 @@ var newCmd = &cobra.Command{
 		Verbose(cmd)
 
 		keyChain.Add(newName, findPassword(file))
+
+		if newDir != "" {
+			keyChain.SetDirectory(newName, absDir(newDir))
+		}
 	},
 }
 
@@ -149,6 +154,7 @@ func exportAWS(access, secret string) string {
 func init() {
 	newCmd.Flags().StringVarP(&newName, "name", "", "", "Name of the profile")
 	newCmd.Flags().StringVarP(&file, "file", "f", "", "Credentials file to parse")
+	newCmd.Flags().StringVarP(&newDir, "dir", "d", "", "Starting directory of the profile")
 	newCmd.MarkFlagRequired("name")
 
 	rootCmd.AddCommand(newCmd)

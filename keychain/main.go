@@ -14,21 +14,58 @@ type KeyChain struct {
 	AccessGroup string
 }
 
+// Item is a germ entry in the keychain. Directory is stored in the item's
+// comment attribute and becomes the starting directory of the profile.
+type Item struct {
+	Account   string
+	Directory string
+}
+
 func (k *KeyChain) Add(name, value string) {
 	// Use the security command-line tool instead of deprecated APIs
-	cmd := exec.Command("security", "add-generic-password", 
-		"-s", k.Service, 
-		"-a", name, 
+	cmd := exec.Command("security", "add-generic-password",
+		"-s", k.Service,
+		"-a", name,
 		"-w", value,
 		"-U") // -U updates if exists
-	
+
 	err := cmd.Run()
 	if err != nil {
 		log.Fatal().Err(err).Str("name", name).Msg("failed to add keychain item")
 	}
 }
 
+// SetDirectory sets the starting directory of an existing item. An empty
+// directory clears it. Only the comment attribute is updated, the stored
+// secret is left untouched.
+func (k *KeyChain) SetDirectory(name, directory string) {
+	err := exec.Command("security", "find-generic-password", "-s", k.Service, "-a", name).Run()
+	if err != nil {
+		log.Fatal().Err(err).Str("name", name).Msg("keychain item does not exist")
+	}
+
+	cmd := exec.Command("security", "add-generic-password",
+		"-s", k.Service,
+		"-a", name,
+		"-j", directory,
+		"-U")
+
+	err = cmd.Run()
+	if err != nil {
+		log.Fatal().Err(err).Str("name", name).Msg("failed to set directory")
+	}
+}
+
 func (k *KeyChain) List() []string {
+	var names []string
+	for _, item := range k.Items() {
+		names = append(names, item.Account)
+	}
+
+	return names
+}
+
+func (k *KeyChain) Items() []Item {
 	// Use security command to list accounts
 	cmd := exec.Command("security", "dump-keychain")
 	output, err := cmd.Output()
@@ -41,36 +78,38 @@ func (k *KeyChain) List() []string {
 
 const (
 	acctPrefix = `"acct"<blob>="`
+	icmtPrefix = `"icmt"<blob>="`
 	svcePrefix = `"svce"<blob>="`
 	entryStart = "class:"
 )
 
-// parseKeychainDump extracts the account names of every entry whose service
-// matches the given service from `security dump-keychain` output.
+// parseKeychainDump extracts the account name and directory (comment) of
+// every entry whose service matches the given service from
+// `security dump-keychain` output.
 //
 // The dump groups attributes per entry, with each entry starting at a `class:`
-// line. The `acct` and `svce` lines can appear in any order within an entry and
-// are not at a fixed distance from one another, so we accumulate both per entry
-// and emit the account once we know its service matches.
-func parseKeychainDump(service, output string) []string {
+// line. The `acct`, `icmt` and `svce` lines can appear in any order within an
+// entry and are not at a fixed distance from one another, so we accumulate
+// them per entry and emit the item once we know its service matches.
+func parseKeychainDump(service, output string) []Item {
 	if output == "" {
 		return nil
 	}
 
 	svceLine := svcePrefix + service + `"`
 
-	var accounts []string
+	var items []Item
 	seen := map[string]bool{}
 
-	var account string
+	var item Item
 	var serviceMatches bool
 
 	flush := func() {
-		if serviceMatches && account != "" && !seen[account] {
-			seen[account] = true
-			accounts = append(accounts, account)
+		if serviceMatches && item.Account != "" && !seen[item.Account] {
+			seen[item.Account] = true
+			items = append(items, item)
 		}
-		account = ""
+		item = Item{}
 		serviceMatches = false
 	}
 
@@ -83,7 +122,12 @@ func parseKeychainDump(service, output string) []string {
 		}
 
 		if strings.HasPrefix(trimmed, acctPrefix) {
-			account = strings.TrimSuffix(strings.TrimPrefix(trimmed, acctPrefix), `"`)
+			item.Account = strings.TrimSuffix(strings.TrimPrefix(trimmed, acctPrefix), `"`)
+			continue
+		}
+
+		if strings.HasPrefix(trimmed, icmtPrefix) {
+			item.Directory = strings.TrimSuffix(strings.TrimPrefix(trimmed, icmtPrefix), `"`)
 			continue
 		}
 
@@ -94,7 +138,7 @@ func parseKeychainDump(service, output string) []string {
 
 	flush()
 
-	return accounts
+	return items
 }
 
 func (k *KeyChain) Delete(name string) {
@@ -109,19 +153,27 @@ func (k *KeyChain) Delete(name string) {
 
 func (k *KeyChain) Profiles() []iterm.Profile {
 	var ret []iterm.Profile
-	for _, account := range k.List() {
-		prof := iterm.NewProfile(fmt.Sprintf("custom/%s", account), map[string]string{})
-
-		prof.KeyboardMap[iterm.KeyboardSortcutAltA] = iterm.KeyboardMap{
-			Action: 12,
-			Text:   loginCommand(k.Service, account),
-		}
-
-		ret = append(ret, *prof)
-
+	for _, item := range k.Items() {
+		ret = append(ret, profile(k.Service, item))
 	}
 
 	return ret
+}
+
+func profile(service string, item Item) iterm.Profile {
+	prof := iterm.NewProfile(fmt.Sprintf("custom/%s", item.Account), map[string]string{})
+
+	prof.KeyboardMap[iterm.KeyboardSortcutAltA] = iterm.KeyboardMap{
+		Action: 12,
+		Text:   loginCommand(service, item.Account),
+	}
+
+	if item.Directory != "" {
+		prof.CustomDirectory = "Yes"
+		prof.WorkingDirectory = item.Directory
+	}
+
+	return *prof
 }
 
 // loginCommand builds the shortcut that, when evaluated, exports the raw token
