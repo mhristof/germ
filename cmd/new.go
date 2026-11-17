@@ -47,6 +47,7 @@ func findPassword(file string) string {
 
 	fmt.Print("Enter secret:")
 	bytePassword, err := terminal.ReadPassword(int(syscall.Stdin))
+	fmt.Println()
 	if err != nil {
 		log.Fatal().Err(err).Msg("cannot read secret")
 	}
@@ -54,7 +55,36 @@ func findPassword(file string) string {
 	// Store the raw secret only. The generated iTerm login shortcut builds the
 	// `export <NAME>='<secret>'` wrapping at eval time (see keychain.Profiles),
 	// so the keychain never holds the surrounding shell syntax.
-	return string(bytePassword)
+	secret, err := sanitizeSecret(string(bytePassword))
+	if err != nil {
+		log.Fatal().Err(err).Msg("invalid secret; re-enter it (check for stray paste artifacts)")
+	}
+
+	return secret
+}
+
+// sanitizeSecret trims surrounding whitespace from the entered secret and
+// rejects any non-printable or non-ASCII byte.
+//
+// macOS `security` stores a generic password containing such bytes as a hex
+// blob, and `security -w` then prints it back as a hex string instead of the
+// original text. That silently corrupts the token on retrieval (the login
+// shortcut would export the hex, not the secret). Failing loudly at entry
+// forces a clean paste instead of storing something that breaks later.
+func sanitizeSecret(secret string) (string, error) {
+	trimmed := strings.TrimSpace(secret)
+
+	if trimmed == "" {
+		return "", errors.New("empty secret")
+	}
+
+	for i, r := range trimmed {
+		if r < 0x20 || r > 0x7e {
+			return "", errors.Errorf("non-printable or non-ASCII character %q at position %d", r, i)
+		}
+	}
+
+	return trimmed, nil
 }
 
 func loadRootKey(file string) (string, error) {

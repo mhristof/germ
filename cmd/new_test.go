@@ -54,6 +54,35 @@ func TestHandleFile(t *testing.T) {
 	}
 }
 
+func TestSanitizeSecret(t *testing.T) {
+	cases := []struct {
+		name    string
+		in      string
+		exp     string
+		wantErr bool
+	}{
+		{name: "plain token", in: "glsa_abcDEF123_XYZ9", exp: "glsa_abcDEF123_XYZ9"},
+		{name: "trailing newline trimmed", in: "glsa_token9\n", exp: "glsa_token9"},
+		{name: "surrounding whitespace trimmed", in: "  glsa_token9  ", exp: "glsa_token9"},
+		{name: "empty rejected", in: "   ", wantErr: true},
+		{name: "non-ascii accent rejected", in: "glsa_withñaccent", wantErr: true},
+		{name: "embedded tab rejected", in: "glsa_tab\tend", wantErr: true},
+		{name: "math symbol artifact rejected", in: "√glsa_token", wantErr: true},
+	}
+
+	for _, test := range cases {
+		t.Run(test.name, func(t *testing.T) {
+			got, err := sanitizeSecret(test.in)
+			if test.wantErr {
+				assert.Assert(t, err != nil, "expected an error")
+				return
+			}
+			assert.NilError(t, err)
+			assert.Equal(t, test.exp, got)
+		})
+	}
+}
+
 func tempFile(t *testing.T, contents, name string) (string, func()) {
 	dir, err := ioutil.TempDir("", "example")
 	if err != nil {
