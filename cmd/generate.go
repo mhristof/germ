@@ -10,6 +10,7 @@ import (
 	"github.com/adrg/xdg"
 	"github.com/google/go-cmp/cmp"
 	"github.com/mhristof/germ/aws"
+	"github.com/mhristof/germ/cliclick"
 	"github.com/mhristof/germ/config"
 	"github.com/mhristof/germ/iterm"
 	"github.com/mhristof/germ/k8s"
@@ -91,6 +92,13 @@ var generateCmd = &cobra.Command{
 			log.Warn().Err(err).Msg("cannot add vault profile")
 		} else {
 			prof.Profiles = append(prof.Profiles, vaultProfile)
+		}
+
+		cliclickProfile, err := cliclick.Profile()
+		if err != nil {
+			log.Warn().Err(err).Msg("cannot add cliclick profile")
+		} else {
+			prof.Profiles = append(prof.Profiles, cliclickProfile)
 		}
 
 		prof.UpdateKeyboardMaps()
