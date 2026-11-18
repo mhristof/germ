@@ -47,6 +47,19 @@ If you want more complicated commands, you can ommit the `--export` flag and typ
 export FOO=bar BAR=baz
 ```
 
+### How can I run a command when an SSM session starts ?
+
+Add the instance name and the command to `~/.config/germ.yaml` (not part of this repo):
+
+```yaml
+ssm:
+  commands:
+    marketmaker-apne1-az1-1: "cd ~/marketmaker/deltix-mm/; alias d='docker compose'"
+```
+
+and re-run `germ generate --write` (`--ignore-instances` is enough, the commands are applied on top of the cached SSM profiles).
+The command is sent once the `Starting session with SessionId:` line is printed. Instance names are matched case insensitively and must not contain `.`.
+
 ### My profile doesnt show in the list.
 
 Make sure you have generated `germ generate` and written `--write` your profile and give iterm2

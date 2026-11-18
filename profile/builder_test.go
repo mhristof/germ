@@ -174,4 +174,5 @@ func TestSSMProfileBuilder_WithSSMCommand(t *testing.T) {
 	
 	// The CustomCommand field should be set to "No" via the config map during NewProfile
 	assert.Equal(t, "No", profile.CustomCommand)
+	assert.Equal(t, "No", profile.CustomDirectory)
 }

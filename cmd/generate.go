@@ -64,9 +64,9 @@ var generateCmd = &cobra.Command{
 
 		config.Load()
 		prof.Profiles = append(prof.Profiles, config.Generate()...)
+		var ssmProfs []iterm.Profile
 		if !ignoreInstances {
-			ssmProfs := ssm.Generate()
-			prof.Profiles = append(prof.Profiles, ssmProfs...)
+			ssmProfs = ssm.Generate()
 
 			data, err := json.MarshalIndent(ssmProfs, "", "    ")
 			if err != nil {
@@ -77,15 +77,17 @@ var generateCmd = &cobra.Command{
 		} else {
 			data, path := loadFromCache("germ.ssm.json")
 
-			var ssmProfs []iterm.Profile
 			err := json.Unmarshal(data, &ssmProfs)
 			if err != nil {
 				log.Fatal().Str("path", path).Err(err).Msg("cannot unmarshal ssm profiles")
 			} else {
-				prof.Profiles = append(prof.Profiles, ssmProfs...)
 				log.Info().Str("path", path).Msg("using cached ssm profiles")
 			}
 		}
+
+		// applied after caching so config changes take effect with --ignore-instances
+		ssm.ApplyCommands(ssmProfs, ssm.Commands())
+		prof.Profiles = append(prof.Profiles, ssmProfs...)
 
 		vaultProfile, err := vault.Profile()
 		if err != nil {

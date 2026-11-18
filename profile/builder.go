@@ -288,6 +288,10 @@ func (b *SSMProfileBuilder) Build() *iterm.Profile {
 	// SSM profiles should not have CustomCommand set to "Yes"
 	// They use InitialText instead
 	profile.CustomCommand = "No"
+
+	// Start in $HOME instead of recycling the current session's directory,
+	// so a local .envrc (direnv) is not loaded before the SSM session starts.
+	profile.CustomDirectory = "No"
 	
 	return profile
 }
