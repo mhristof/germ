@@ -6,20 +6,12 @@ import (
 	"math/rand"
 	"os"
 
-	"github.com/adrg/xdg"
+	"github.com/mhristof/germ/paths"
 	log "github.com/sirupsen/logrus"
 )
 
 func newUniqueName(name string) string {
-	storage, err := xdg.ConfigFile("germ-profiles.json")
-	if err != nil {
-		log.WithFields(log.Fields{
-			"error":   err,
-			"storage": storage,
-		}).Error("Failed to get storage path")
-
-		return name
-	}
+	storage := paths.Names()
 
 	contents, err := os.ReadFile(storage)
 	if err != nil {
@@ -27,7 +19,7 @@ func newUniqueName(name string) string {
 			"error":   err,
 			"storage": storage,
 		}).Debug("Failed to read storage file")
-		os.WriteFile(storage, []byte(fmt.Sprintf(`{"%s": "%s"}`, name, name)), 0o644)
+		paths.Write(storage, []byte(fmt.Sprintf(`{"%s": "%s"}`, name, name)))
 		return name
 	}
 
@@ -73,7 +65,7 @@ func newUniqueName(name string) string {
 		return name
 	}
 
-	err = os.WriteFile(storage, []byte(prettyJSON), 0o644)
+	err = paths.Write(storage, prettyJSON)
 	if err != nil {
 		log.WithFields(log.Fields{
 			"error":   err,

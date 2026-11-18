@@ -7,12 +7,12 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/adrg/xdg"
 	"github.com/google/go-cmp/cmp"
 	"github.com/mhristof/germ/aws"
 	"github.com/mhristof/germ/cliclick"
 	"github.com/mhristof/germ/config"
 	"github.com/mhristof/germ/iterm"
+	"github.com/mhristof/germ/paths"
 	"github.com/mhristof/germ/k8s"
 	"github.com/mhristof/germ/ssh"
 	"github.com/mhristof/germ/ssm"
@@ -50,6 +50,9 @@ var generateCmd = &cobra.Command{
 			log.Fatal().Msg("--write and --diff are incompatible")
 		}
 
+		// load first, the config affects every profile (ie aws_open_device_sso)
+		config.Load()
+
 		var prof iterm.Profiles
 
 		prof.Profiles = append(prof.Profiles, aws.Profiles("", AWSConfig)...)
@@ -62,7 +65,6 @@ var generateCmd = &cobra.Command{
 		prof.Profiles = append(prof.Profiles, vim.Profile())
 		prof.Profiles = append(prof.Profiles, ssh.Profiles()...)
 
-		config.Load()
 		prof.Profiles = append(prof.Profiles, config.Generate()...)
 		var ssmProfs []iterm.Profile
 		if !ignoreInstances {
@@ -73,9 +75,9 @@ var generateCmd = &cobra.Command{
 				log.Fatal().Err(err).Msg("cannot marshal ssm profiles")
 			}
 
-			storeToCache("germ.ssm.json", data)
+			storeToCache("ssm.json", data)
 		} else {
-			data, path := loadFromCache("germ.ssm.json")
+			data, path := loadFromCache("ssm.json")
 
 			err := json.Unmarshal(data, &ssmProfs)
 			if err != nil {
@@ -170,11 +172,7 @@ var generateCmd = &cobra.Command{
 }
 
 func loadFromCache(name string) ([]byte, string) {
-	path, err := xdg.CacheFile(name)
-	if err != nil {
-		log.Fatal().Err(err).Msg("cannot get cache file")
-		return nil, path
-	}
+	path := paths.Cache(name)
 
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
@@ -187,13 +185,9 @@ func loadFromCache(name string) ([]byte, string) {
 }
 
 func storeToCache(name string, data []byte) {
-	path, err := xdg.CacheFile(name)
-	if err != nil {
-		log.Fatal().Err(err).Msg("cannot get cache file")
-	}
+	path := paths.Cache(name)
 
-	// write to file
-	err = ioutil.WriteFile(path, data, 0o644)
+	err := paths.Write(path, data)
 	if err != nil {
 		log.Fatal().Err(err).Msg("cannot write to file")
 	}

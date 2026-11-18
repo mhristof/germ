@@ -4,14 +4,14 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/adrg/xdg"
 	"github.com/mhristof/germ/iterm"
+	"github.com/mhristof/germ/paths"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
 )
 
 func Path() string {
-	return filepath.Join(xdg.ConfigHome, "germ.yaml")
+	return paths.Config()
 }
 
 func Load() {
@@ -36,7 +36,7 @@ func Generate() []iterm.Profile {
 	i := 0
 
 	for profile := range viper.GetStringMap("profiles") {
-		config := viper.GetStringMapString("profiles." + profile + ".config")
+		config := canonicalKeys(viper.GetStringMapString("profiles." + profile + ".config"))
 		pro := iterm.NewProfile(profile, config)
 
 		var triggers []iterm.Trigger
@@ -48,6 +48,35 @@ func Generate() []iterm.Profile {
 
 		ret[i] = *pro
 		i++
+	}
+
+	return ret
+}
+
+// keys are the profile config keys iterm.NewProfile expects, in their case
+// sensitive form.
+var keys = []string{
+	"AllowTitleSetting",
+	"BadgeText",
+	"Command",
+	"Initial Text",
+	"Tags",
+}
+
+// canonicalKeys restores the case of the known keys, as viper lowercases all
+// the keys of the config file.
+func canonicalKeys(config map[string]string) map[string]string {
+	ret := make(map[string]string, len(config))
+	for k, v := range config {
+		ret[k] = v
+	}
+
+	for _, key := range keys {
+		lower := strings.ToLower(key)
+		if v, found := ret[lower]; found && lower != key {
+			ret[key] = v
+			delete(ret, lower)
+		}
 	}
 
 	return ret

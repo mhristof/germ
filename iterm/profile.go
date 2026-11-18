@@ -1,15 +1,13 @@
 package iterm
 
 import (
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os/exec"
 	"strconv"
 	"strings"
 	"time"
 
-	"github.com/mitchellh/go-homedir"
+	"github.com/mhristof/germ/paths"
 	"github.com/rs/zerolog/log"
 )
 
@@ -144,35 +142,6 @@ func (p *Profiles) FindGUID(guid string) (Profile, bool) {
 	return Profile{}, false
 }
 
-func NewProfilesFromFile(path string) []Profile {
-	file, err := homedir.Expand(path)
-	if err != nil {
-		panic(err)
-	}
-
-	data, err := ioutil.ReadFile(file)
-	if err != nil {
-		return []Profile{}
-	}
-
-	var profs map[string]map[string]string
-
-	err = json.Unmarshal(data, &profs)
-	if err != nil {
-		panic(err)
-	}
-
-	ret := make([]Profile, len(profs))
-
-	i := 0
-	for key, config := range profs {
-		ret[i] = *NewProfile(key, config)
-		i++
-	}
-
-	return ret
-}
-
 func NewProfile(name string, config map[string]string) *Profile {
 	prof := createBaseProfile(name, config)
 	applyConfigOverrides(&prof, config)
@@ -194,7 +163,7 @@ func createBaseProfile(name string, config map[string]string) Profile {
 		GUID:                   name,
 		Tags:                   Tags(config),
 		CustomDirectory:        "Recycle",
-		SmartSelectionRules:    SmartSelectionRules("~/.germ.ssr.json"),
+		SmartSelectionRules:    SmartSelectionRules(paths.SSR()),
 		Triggers:               Triggers(name),
 		BadgeText:              name + "\n" + uname,
 		TitleComponents:        32,

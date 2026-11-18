@@ -11,7 +11,7 @@ import (
 
 func TestPath(t *testing.T) {
 	path := Path()
-	assert.Contains(t, path, "germ.yaml")
+	assert.Equal(t, "config.yaml", filepath.Base(path))
 	assert.True(t, filepath.IsAbs(path))
 }
 
@@ -116,7 +116,7 @@ func TestGenerate(t *testing.T) {
 func TestLoad(t *testing.T) {
 	// Create a temporary config file for testing
 	tempDir := t.TempDir()
-	configPath := filepath.Join(tempDir, "germ.yaml")
+	configPath := filepath.Join(tempDir, "germ", "config.yaml")
 	
 	configContent := `profiles:
   test-profile:
@@ -125,6 +125,7 @@ func TestLoad(t *testing.T) {
       Tags: "test"
 `
 	
+	assert.NoError(t, os.MkdirAll(filepath.Dir(configPath), 0o755))
 	err := os.WriteFile(configPath, []byte(configContent), 0644)
 	assert.NoError(t, err)
 
@@ -158,4 +159,21 @@ func TestLoadNonExistentConfig(t *testing.T) {
 	assert.NotPanics(t, func() {
 		Load()
 	})
+}
+func TestCanonicalKeys(t *testing.T) {
+	assert.Equal(t, map[string]string{
+		"AllowTitleSetting": "true",
+		"BadgeText":         "badge",
+		"Command":           "date",
+		"Initial Text":      "ls",
+		"Tags":              "a,b",
+		"region":            "eu-west-1",
+	}, canonicalKeys(map[string]string{
+		"allowtitlesetting": "true",
+		"badgetext":         "badge",
+		"command":           "date",
+		"initial text":      "ls",
+		"tags":              "a,b",
+		"region":            "eu-west-1",
+	}))
 }

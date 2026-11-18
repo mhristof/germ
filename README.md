@@ -24,6 +24,23 @@ This script extracts profiles for:
 2. Kubernetes from `~/.kube/config`. If there are multiple clusters in the config, it splits out into different files and each profile utilises the extracted config. If you modify `~/.kube/config`, you need to re-run this script.
 
 
+## Files
+
+germ follows the [XDG base directory spec](https://specifications.freedesktop.org/basedir-spec/latest/),
+using `$HOME/.config`, `$HOME/.local/state` and `$HOME/.cache` when the `XDG_*` variables are not set.
+
+| File | Purpose |
+|---|---|
+| `$XDG_CONFIG_HOME/germ/config.yaml` | your config: custom `profiles`, `ssm.commands`, `aws_open_device_sso` |
+| `$XDG_CONFIG_HOME/germ/ssr.json` | your Smart Selection rules |
+| `$XDG_STATE_HOME/germ/profiles.json` | generated, keeps the profile badge names stable between runs |
+| `$XDG_CACHE_HOME/germ/ssm.json` | generated, SSM profiles used by `generate --ignore-instances` |
+
+Files in the old locations (`~/.config/germ.yaml`, `~/.germ.ssr.json`, `~/.config/germ-profiles.json`
+and `~/.cache/germ.ssm.json`) are moved to the new ones the next time germ runs.
+
+The keys under `profiles.<name>.config` are case insensitive, ie `BadgeText` and `badgetext` are the same.
+
 ## F.A.Q.
 
 ### My custom secret env var is not set.
@@ -49,7 +66,7 @@ export FOO=bar BAR=baz
 
 ### How can I run a command when an SSM session starts ?
 
-Add a list of instance name regexes and commands to `~/.config/germ.yaml` (not part of this repo):
+Add a list of instance name regexes and commands to `~/.config/germ/config.yaml` (not part of this repo):
 
 ```yaml
 ssm:
@@ -73,9 +90,9 @@ a couple of seconds to detect the changes and use the new profile definitions.
 
 ### SmartSelectionRules
 
-The user can define her own Smart selection rules in a file called `~/.germ.ssr.json`. For example
+The user can define her own Smart selection rules in a file called `~/.config/germ/ssr.json`. For example
 
-> cat ~/.germ.ssr.json
+> cat ~/.config/germ/ssr.json
 ```json
 [
     {

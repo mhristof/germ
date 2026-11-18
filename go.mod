@@ -4,7 +4,6 @@ go 1.25.0
 
 require (
 	github.com/MakeNowJust/heredoc v1.0.0
-	github.com/adrg/xdg v0.5.3
 	github.com/aws/aws-sdk-go v1.55.8
 	github.com/aws/aws-sdk-go-v2/config v1.32.11
 	github.com/aws/aws-sdk-go-v2/service/ec2 v1.294.0
