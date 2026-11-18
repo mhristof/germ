@@ -29,19 +29,30 @@ func TestInstanceName(t *testing.T) {
 }
 
 func TestApplyCommands(t *testing.T) {
+	trigger := func(command string) []iterm.Trigger {
+		return []iterm.Trigger{{
+			Action:    "SendTextTrigger",
+			Parameter: command + "\\r",
+			Regex:     sessionStartRegex,
+		}}
+	}
+
 	profiles := []iterm.Profile{
-		{Name: "acc:ap-northeast-1:ssm-MarketMaker-1"},
+		{Name: "acc:ap-northeast-1:ssm-marketmaker-apne1-az1-1"},
+		{Name: "acc:ap-northeast-1:ssm-marketmaker-apne1-az2-1"},
+		{Name: "acc:ap-northeast-1:ssm-MarketMaker-euw1-1"},
 		{Name: "acc:ap-northeast-1:ssm-other"},
 	}
 
-	ApplyCommands(profiles, map[string]string{
-		"marketmaker-1": "cd ~/mm",
+	ApplyCommands(profiles, []Command{
+		{Match: "[", Command: "invalid"},
+		{Match: "^marketmaker-apne1-az1-1$", Command: "exact"},
+		{Match: "^marketmaker-apne1-.*", Command: "regex"},
+		{Match: "(?i)^marketmaker-", Command: "case insensitive"},
 	})
 
-	assert.Equal(t, []iterm.Trigger{{
-		Action:    "SendTextTrigger",
-		Parameter: "cd ~/mm\\r",
-		Regex:     sessionStartRegex,
-	}}, profiles[0].Triggers)
-	assert.Empty(t, profiles[1].Triggers)
+	assert.Equal(t, trigger("exact"), profiles[0].Triggers)
+	assert.Equal(t, trigger("regex"), profiles[1].Triggers)
+	assert.Equal(t, trigger("case insensitive"), profiles[2].Triggers)
+	assert.Empty(t, profiles[3].Triggers)
 }

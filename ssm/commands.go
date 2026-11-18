@@ -1,6 +1,7 @@
 package ssm
 
 import (
+	"regexp"
 	"strings"
 
 	"github.com/mhristof/germ/iterm"
@@ -23,12 +24,35 @@ func instanceName(profileName string) (string, bool) {
 	return strings.TrimPrefix(parts[2], "ssm-"), true
 }
 
-// ApplyCommands adds a trigger that sends the configured command to the
-// remote shell once the SSM session for a matching instance starts.
-// Instance names are matched case insensitively, as viper lowercases keys.
-func ApplyCommands(profiles []iterm.Profile, commands map[string]string) {
+// Command is a command sent to the remote shell when the SSM session of an
+// instance whose name matches Match starts.
+type Command struct {
+	Match   string `mapstructure:"match"`
+	Command string `mapstructure:"command"`
+}
+
+// ApplyCommands adds a trigger that sends the command of the first matching
+// entry to the remote shell once the SSM session for an instance starts.
+func ApplyCommands(profiles []iterm.Profile, commands []Command) {
 	if len(commands) == 0 {
 		return
+	}
+
+	type compiled struct {
+		re      *regexp.Regexp
+		command string
+	}
+
+	var rules []compiled
+
+	for _, c := range commands {
+		re, err := regexp.Compile(c.Match)
+		if err != nil {
+			log.Error().Err(err).Str("match", c.Match).Msg("invalid ssm command regex")
+			continue
+		}
+
+		rules = append(rules, compiled{re: re, command: c.Command})
 	}
 
 	for i := range profiles {
@@ -37,23 +61,33 @@ func ApplyCommands(profiles []iterm.Profile, commands map[string]string) {
 			continue
 		}
 
-		command, found := commands[strings.ToLower(name)]
-		if !found {
-			continue
+		for _, rule := range rules {
+			if !rule.re.MatchString(name) {
+				continue
+			}
+
+			profiles[i].Triggers = append(profiles[i].Triggers, iterm.Trigger{
+				Action:    "SendTextTrigger",
+				Parameter: rule.command + "\\r",
+				Regex:     sessionStartRegex,
+			})
+
+			log.Debug().Str("profile", profiles[i].Name).Str("instance", name).Str("match", rule.re.String()).Msg("added ssm session command")
+
+			break
 		}
-
-		profiles[i].Triggers = append(profiles[i].Triggers, iterm.Trigger{
-			Action:    "SendTextTrigger",
-			Parameter: command + "\\r",
-			Regex:     sessionStartRegex,
-		})
-
-		log.Debug().Str("profile", profiles[i].Name).Str("instance", name).Msg("added ssm session command")
 	}
 }
 
 // Commands returns the per-instance commands from the `ssm.commands` key of
 // the germ config file.
-func Commands() map[string]string {
-	return viper.GetStringMapString("ssm.commands")
+func Commands() []Command {
+	var commands []Command
+
+	err := viper.UnmarshalKey("ssm.commands", &commands)
+	if err != nil {
+		log.Error().Err(err).Msg("cannot parse ssm.commands")
+	}
+
+	return commands
 }

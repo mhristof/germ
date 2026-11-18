@@ -49,16 +49,20 @@ export FOO=bar BAR=baz
 
 ### How can I run a command when an SSM session starts ?
 
-Add the instance name and the command to `~/.config/germ.yaml` (not part of this repo):
+Add a list of instance name regexes and commands to `~/.config/germ.yaml` (not part of this repo):
 
 ```yaml
 ssm:
   commands:
-    marketmaker-apne1-az1-1: "cd ~/marketmaker/deltix-mm/; alias d='docker compose'"
+    - match: "^marketmaker-apne1-az1-1$"
+      command: "cd ~/marketmaker/deltix-mm/; alias d='docker compose'"
+    - match: "^marketmaker-"
+      command: "cd ~/marketmaker"
 ```
 
 and re-run `germ generate --write` (`--ignore-instances` is enough, the commands are applied on top of the cached SSM profiles).
-The command is sent once the `Starting session with SessionId:` line is printed. Instance names are matched case insensitively and must not contain `.`.
+`match` is a Go regex matched against the instance `Name` tag; it is unanchored, so use `^...$` for an exact name and `(?i)` for case insensitive matching.
+The first matching entry wins and its command is sent once the `Starting session with SessionId:` line is printed.
 
 ### My profile doesnt show in the list.
 
